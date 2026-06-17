@@ -60,7 +60,6 @@ th.arrow::after{content:" ▾";color:var(--p3-accent)}
 th.arrow.asc::after{content:" ▴"}
 tbody tr:hover td{background:#f9fbfd}
 tbody tr:hover td:first-child{background:#f9fbfd}
-.loc{font-weight:600}
 .pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:700}
 .p-green{color:var(--green);background:var(--green-bg)}
 .p-amber{color:var(--amber);background:var(--amber-bg)}
@@ -125,17 +124,14 @@ table.mtx tr.total td:first-child{background:#f3f6fb}
       <div class="title">P3 Recovery <span class="dot">·</span> Network Health Overview</div>
       <div class="sub">Path to Tier Goal across all 16 operational locations · Week ending Sun 14 Jun 2026</div>
     </div>
-    <div class="tag">Static snapshot · generated 16 Jun 2026 · all revenue incl. GST</div>
+    <div class="tag">Static snapshot · generated 17 Jun 2026 · all revenue incl. GST</div>
   </header>
-
   <nav class="tabs">
     <button class="active" data-tab="overview">Network Overview</button>
     <button data-tab="monthly">Monthly Matrix</button>
   </nav>
-
   <div id="tab-overview" class="tabpane active">
   <section class="kpis" id="kpis"></section>
-
   <div class="row2">
     <div class="card">
       <h3>Revenue status vs plan targets</h3>
@@ -156,7 +152,6 @@ table.mtx tr.total td:first-child{background:#f3f6fb}
       </div>
     </div>
   </div>
-
   <div class="tablecard">
     <div class="hd2">
       <h3>Locations · path to tier goal <span style="text-transform:none;letter-spacing:0;font-weight:500;color:var(--p3-accent)">— click a row for monthly trend</span></h3>
@@ -188,9 +183,8 @@ table.mtx tr.total td:first-child{background:#f3f6fb}
       </table>
     </div>
   </div>
-  <p class="foot">Hapana transaction-day basis · monthly figures are exact daily sums (no week-straddle approximation). Hamilton ($0) and Warners Bay ($581) are pre-ramp/dormant and show placeholder plans — confirm or exclude at next refresh. Sortable: click any column header.</p>
+  <p class="foot">Hapana transaction-day basis · monthly figures are exact daily sums (no week-straddle approximation). Sortable: click any column header.</p>
   </div>
-
   <div id="tab-monthly" class="tabpane">
     <p class="mtx-note">Total revenue (incl-GST) by calendar month — every location at a glance. Cells are shaded by value within each location's row. <strong>Jun 2026</strong> is the live month (through day 14 of 30); its projection is MTD × 30/14.</p>
     <div class="tablecard">
@@ -199,12 +193,12 @@ table.mtx tr.total td:first-child{background:#f3f6fb}
       </div>
     </div>
     <div class="mtx-legend"><span>Lower</span><span class="gradient"></span><span>Higher (within each location)</span></div>
-    <p class="foot">Shellharbour and Warners Bay opened Jun 2026. Hamilton dormant since Dec 2025.</p>
+    <p class="foot">Shellharbour and Warners Bay opened in Jun 2026 — their Mar–May figures are pre-opening soft trade. Hamilton has had no recorded revenue since Dec 2025 (dormant). Network total excludes dormant/pre-opening months.</p>
   </div>
 </div>
-
 <script>
-const NET={revenue:203870.35,wow:-0.0198,active:4138,newM:178,canc:96,netAdds:82};
+// ── DATA — updated by Update P3 Dashboard skill ──
+const NET={revenue:203870.35, wow:-0.0198, active:4138, newM:178, canc:96, netAdds:82};
 const cross={"Jul 2026":1,"Sep 2026":2,"Oct 2026":3,"Nov 2026":4,"Dec 2026":5,"Jan 2027":6};
 const DATA=[
  {name:"Shellharbour",status:"On Track",lastWk:15256.03,pct:1.7247,wow:0.0773,monthly:37776,goal:50000,planWks:22,crossover:"Oct 2026",active:288,netAdds:17},
@@ -242,149 +236,24 @@ const MONTHLY={
  "Warners Bay":{months:[null,null,null],vals:[null,null,null],mtd:268,proj:574,target:3181,preramp:true,opened:"Jun 2026"},
  "Winnellie":{months:["Mar 2026","Apr 2026","May 2026"],vals:[60345,59140,56525],mtd:28283,proj:60607,target:58508}
 };
-const MTD_DAYS=14,MONTH_DAYS=30;
+const MTD_DAYS=14;
+const MONTH_DAYS=30;
+
+// ── RENDER — do not modify below this line ──
 const money=n=>"$"+Math.round(n).toLocaleString("en-AU");
 const pct=n=>(n*100).toFixed(0)+"%";
 const wowF=n=>n==null?"—":(n>=0?"+":"")+(n*100).toFixed(1)+"%";
 const pillCls={"On Track":"p-green","Close":"p-amber","Behind":"p-red"};
-
-function kpis(){
-  const c=[
-    {lbl:"Network weekly revenue",val:money(NET.revenue),d:wowF(NET.wow)+" vs prior wk",cls:NET.wow<0?"down":"up"},
-    {lbl:"Active members",val:NET.active.toLocaleString("en-AU"),d:"across network",cls:"neu"},
-    {lbl:"New members (wk)",val:NET.newM,d:"+"+NET.netAdds+" net adds",cls:"up"},
-    {lbl:"Cancellations (wk)",val:NET.canc,d:"network total",cls:"neu"},
-    {lbl:"On Track",val:"10 / 16",d:"4 close · 2 behind",cls:"neu"}
-  ];
-  document.getElementById("kpis").innerHTML=c.map(k=>
-    `<div class="kpi"><div class="lbl">${k.lbl}</div><div class="val">${k.val}</div><div class="delta ${k.cls}">${k.d}</div></div>`).join("");
-}
-
-function monthlyDetail(name){
-  const m=MONTHLY[name];
-  if(!m) return `<div class="preramp-note">No monthly data available.</div>`;
-  if(m.preramp){
-    if(name==="Hamilton") return `<div class="preramp-note">⚑ <strong>Hamilton</strong> — no revenue recorded since Dec 2025. Dormant/pre-ramp.</div>`;
-    return `<div class="preramp-note">⚑ <strong>Warners Bay</strong> — brand-new location. Only partial June data so far (${money(m.mtd)} MTD).</div>`;
-  }
-  const all=[...m.vals,m.proj,m.target].filter(v=>v!=null);
-  const max=Math.max(...all,1);
-  let cols="";
-  m.months.forEach((lbl,i)=>{
-    const v=m.vals[i]; if(v==null) return;
-    let mom="";
-    if(i>0&&m.vals[i-1]){const ch=(v-m.vals[i-1])/m.vals[i-1];mom=`<div class="mmom ${ch>=0?'up':'down'}">${ch>=0?'▲':'▼'} ${(Math.abs(ch)*100).toFixed(1)}% MoM</div>`;}
-    cols+=`<div class="mcol"><div class="ml">${lbl}<span class="badge">Actual</span></div><div class="mv">${money(v)}</div><div class="mtrack"><i style="width:${v/max*100}%;background:var(--p3)"></i></div>${mom}</div>`;
-  });
-  const pace=m.proj/m.target;
-  const paceCls=pace>=0.95?'up':pace>=0.8?'neu':'down';
-  cols+=`<div class="mcol proj"><div class="ml">Jun 2026 <span class="badge live">Live · day ${MTD_DAYS}/${MONTH_DAYS}</span></div>`+
-        `<div class="mv">${money(m.mtd)} <span style="font-size:11px;font-weight:600;color:var(--ink-soft)">MTD</span></div>`+
-        `<div class="mtrack"><i style="width:${m.mtd/max*100}%;background:var(--p3-accent)"></i></div>`+
-        `<div class="mmom ${paceCls}">Proj. ${money(m.proj)} · ${pct(pace)} of $${Math.round(m.target/1000)}K target</div>`+
-        `<div class="tgtnote">Projection = MTD × ${MONTH_DAYS}/${MTD_DAYS}</div></div>`;
-  return `<div class="mwrap"><div class="mhd">Monthly revenue (incl-GST) · exact calendar-month actuals</div><div class="months">${cols}</div></div>`;
-}
-
-let sortK="pct",sortAsc=false;
-const openRows=new Set();
-function render(){
-  const rows=[...DATA].sort((a,b)=>{
-    let av=a[sortK],bv=b[sortK];
-    if(sortK==="crossover"){av=cross[a.crossover];bv=cross[b.crossover];}
-    if(typeof av==="string")return sortAsc?av.localeCompare(bv):bv.localeCompare(av);
-    av=av==null?-1:av;bv=bv==null?-1:bv;
-    return sortAsc?av-bv:bv-av;
-  });
-  const tb=document.querySelector("#tbl tbody");
-  tb.innerHTML=rows.map(r=>{
-    const prog=Math.min(100,r.monthly/r.goal*100);
-    const flag=r.preramp?` <span class="flag">⚑</span>`:"";
-    const wowCls=r.wow==null?"neu":(r.wow>=0?"up":"down");
-    const isOpen=openRows.has(r.name);
-    return `<tr class="clk${isOpen?' open':''}" data-loc="${r.name}">
-      <td><span class="loc"><span class="caret">▶</span>${r.name}${flag}</span></td>
-      <td><span class="pill ${pillCls[r.status]}">${r.status}</span></td>
-      <td>${money(r.lastWk)}</td><td>${pct(r.pct)}</td>
-      <td class="${wowCls}">${wowF(r.wow)}</td>
-      <td>${money(r.monthly)}</td><td>${money(r.goal)}</td>
-      <td><div class="goalcell"><div class="minibar"><i style="width:${prog}%"></i></div>${prog.toFixed(0)}%</div></td>
-      <td>${r.planWks}</td><td>${r.crossover}</td>
-      <td>${r.active.toLocaleString("en-AU")}</td>
-      <td class="${r.netAdds>0?'up':r.netAdds<0?'down':'neu'}">${r.netAdds>0?'+':''}${r.netAdds}</td>
-    </tr>
-    <tr class="detail${isOpen?'':' hide'}" data-detail="${r.name}"><td colspan="12">${monthlyDetail(r.name)}</td></tr>`;
-  }).join("");
-  document.querySelectorAll("#tbl tr.clk").forEach(tr=>{
-    tr.addEventListener("click",()=>{
-      const loc=tr.dataset.loc;
-      if(openRows.has(loc))openRows.delete(loc);else openRows.add(loc);
-      const det=tr.parentNode.querySelector(`tr[data-detail="${CSS.escape(loc)}"]`);
-      tr.classList.toggle("open");det.classList.toggle("hide");
-    });
-  });
-  document.querySelectorAll("#tbl th").forEach(th=>{
-    th.classList.remove("arrow","asc");
-    if(th.dataset.k===sortK){th.classList.add("arrow");if(sortAsc)th.classList.add("asc");}
-  });
-}
-document.querySelectorAll("#tbl th").forEach(th=>{
-  th.addEventListener("click",()=>{
-    const k=th.dataset.k;
-    if(k===sortK)sortAsc=!sortAsc;else{sortK=k;sortAsc=(th.dataset.t==="s");}
-    render();
-  });
-});
-
-const MCOLS=["Mar 2026","Apr 2026","May 2026"];
+function kpis(){const c=[{lbl:"Network weekly revenue",val:money(NET.revenue),d:wowF(NET.wow)+" vs prior wk",cls:NET.wow<0?"down":"up"},{lbl:"Active members",val:NET.active.toLocaleString("en-AU"),d:"across network",cls:"neu"},{lbl:"New members (wk)",val:NET.newM,d:"+"+NET.netAdds+" net adds",cls:"up"},{lbl:"Cancellations (wk)",val:NET.canc,d:"network total",cls:"neu"},{lbl:"On Track",val:DATA.filter(d=>d.status==="On Track").length+" / "+DATA.length,d:DATA.filter(d=>d.status==="Close").length+" close · "+DATA.filter(d=>d.status==="Behind").length+" behind",cls:"neu"}];document.getElementById("kpis").innerHTML=c.map(k=>`<div class="kpi"><div class="lbl">${k.lbl}</div><div class="val">${k.val}</div><div class="delta ${k.cls}">${k.d}</div></div>`).join("");}
+function monthlyDetail(name){const m=MONTHLY[name];if(!m)return`<div class="preramp-note">No monthly data available.</div>`;if(m.preramp){return`<div class="preramp-note">⚑ <strong>${name}</strong> — ${name==="Hamilton"?"no revenue recorded since Dec 2025. Dormant/pre-ramp.":"brand-new location. Only partial data so far ("+money(m.mtd)+" MTD)."}</div>`;}const all=[...m.vals,m.proj,m.target].filter(v=>v!=null);const max=Math.max(...all,1);let cols="";m.months.forEach((lbl,i)=>{const v=m.vals[i];if(v==null)return;let mom="";if(i>0&&m.vals[i-1]){const ch=(v-m.vals[i-1])/m.vals[i-1];mom=`<div class="mmom ${ch>=0?'up':'down'}">${ch>=0?'▲':'▼'} ${(Math.abs(ch)*100).toFixed(1)}% MoM</div>`;}cols+=`<div class="mcol"><div class="ml">${lbl}<span class="badge">Actual</span></div><div class="mv">${money(v)}</div><div class="mtrack"><i style="width:${v/max*100}%;background:var(--p3)"></i></div>${mom}</div>`;});const pace=m.proj/m.target;const paceCls=pace>=0.95?'up':pace>=0.8?'neu':'down';cols+=`<div class="mcol proj"><div class="ml">Live month <span class="badge live">Day ${MTD_DAYS}/${MONTH_DAYS}</span></div><div class="mv">${money(m.mtd)} <span style="font-size:11px;font-weight:600;color:var(--ink-soft)">MTD</span></div><div class="mtrack"><i style="width:${m.mtd/max*100}%;background:var(--p3-accent)"></i></div><div class="mmom ${paceCls}">Proj. ${money(m.proj)} · ${pct(pace)} of $${Math.round(m.target/1000)}K target</div><div class="tgtnote">Projection = MTD × ${MONTH_DAYS}/${MTD_DAYS}</div></div>`;return`<div class="mwrap"><div class="mhd">Monthly revenue (incl-GST) · exact calendar-month actuals</div><div class="months">${cols}</div></div>`;}
+let sortK="pct",sortAsc=false;const openRows=new Set();
+function render(){const rows=[...DATA].sort((a,b)=>{let av=a[sortK],bv=b[sortK];if(sortK==="crossover"){av=cross[a.crossover];bv=cross[b.crossover];}if(typeof av==="string")return sortAsc?av.localeCompare(bv):bv.localeCompare(av);av=av==null?-1:av;bv=bv==null?-1:bv;return sortAsc?av-bv:bv-av;});const tb=document.querySelector("#tbl tbody");tb.innerHTML=rows.map(r=>{const prog=Math.min(100,r.monthly/r.goal*100);const flag=r.preramp?` <span class="flag">⚑</span>`:"";const wowCls=r.wow==null?"neu":(r.wow>=0?"up":"down");const isOpen=openRows.has(r.name);return`<tr class="clk${isOpen?' open':''}" data-loc="${r.name}"><td><span class="loc"><span class="caret">▶</span>${r.name}${flag}</span></td><td><span class="pill ${pillCls[r.status]}">${r.status}</span></td><td>${money(r.lastWk)}</td><td>${pct(r.pct)}</td><td class="${wowCls}">${wowF(r.wow)}</td><td>${money(r.monthly)}</td><td>${money(r.goal)}</td><td><div class="goalcell"><div class="minibar"><i style="width:${prog}%"></i></div>${prog.toFixed(0)}%</div></td><td>${r.planWks}</td><td>${r.crossover}</td><td>${r.active.toLocaleString("en-AU")}</td><td class="${r.netAdds>0?'up':r.netAdds<0?'down':'neu'}">${r.netAdds>0?'+':''}${r.netAdds}</td></tr><tr class="detail${isOpen?'':' hide'}" data-detail="${r.name}"><td colspan="12">${monthlyDetail(r.name)}</td></tr>`;}).join("");document.querySelectorAll("#tbl tr.clk").forEach(tr=>{tr.addEventListener("click",()=>{const loc=tr.dataset.loc;if(openRows.has(loc))openRows.delete(loc);else openRows.add(loc);const det=tr.parentNode.querySelector(`tr[data-detail="${CSS.escape(loc)}"]`);tr.classList.toggle("open");det.classList.toggle("hide");});});document.querySelectorAll("#tbl th").forEach(th=>{th.classList.remove("arrow","asc");if(th.dataset.k===sortK){th.classList.add("arrow");if(sortAsc)th.classList.add("asc");}});}
+document.querySelectorAll("#tbl th").forEach(th=>{th.addEventListener("click",()=>{const k=th.dataset.k;if(k===sortK)sortAsc=!sortAsc;else{sortK=k;sortAsc=(th.dataset.t==="s");}render();});});
+const MCOLS=Object.values(MONTHLY).find(m=>m.months&&m.months[0])?.months||[];
 const heat=(v,max)=>v==null||max<=0?"":`background:rgba(22,184,166,${(0.05+0.45*(v/max)).toFixed(3)})`;
 function valFor(m,label){const i=m.months.indexOf(label);return i>=0?m.vals[i]:null;}
-
-function buildMatrix(){
-  const order=Object.keys(MONTHLY).sort((a,b)=>(MONTHLY[b].proj??-1)-(MONTHLY[a].proj??-1));
-  const head=`<tr><th>Location</th><th>Mar 2026</th><th>Apr 2026</th><th>May 2026</th><th class="grp">Jun 2026 MTD</th><th>Jun 2026 Proj.</th><th class="grp">Tier Goal</th></tr>`;
-  document.querySelector("#mtx thead").innerHTML=head;
-  const totals={"Mar 2026":0,"Apr 2026":0,"May 2026":0,mtd:0,proj:0,goal:0};
-  const body=order.map(loc=>{
-    const m=MONTHLY[loc];
-    const rowMax=Math.max(...[...MCOLS.map(c=>valFor(m,c)),m.mtd,m.proj].filter(v=>v!=null),1);
-    let cells="",prev=null;
-    MCOLS.forEach(c=>{
-      const v=valFor(m,c);
-      if(v==null){cells+=`<td class="dash">–</td>`;}
-      else{
-        totals[c]+=v;
-        let sub="";
-        if(prev!=null&&prev>0){const ch=(v-prev)/prev;sub=`<div class="cellsub ${ch>=0?'up-s':'down-s'}">${ch>=0?'▲':'▼'}${(Math.abs(ch)*100).toFixed(0)}%</div>`;}
-        cells+=`<td class="heat" style="${heat(v,rowMax)}">${money(v)}${sub}</td>`;
-      }
-      if(v!=null)prev=v;
-    });
-    if(m.mtd==null){cells+=`<td class="dash grp">–</td>`;}
-    else{totals.mtd+=m.mtd;cells+=`<td class="heat grp" style="${heat(m.mtd,rowMax)}">${money(m.mtd)}<div class="cellsub">MTD d14/30</div></td>`;}
-    if(m.proj==null){cells+=`<td class="dash">–</td>`;}
-    else{
-      totals.proj+=m.proj;
-      const pace=m.proj/m.target;
-      cells+=`<td class="heat" style="${heat(m.proj,rowMax)}">${money(m.proj)}<div class="cellsub ${pace>=0.95?'up-s':pace<0.8?'down-s':''}">${(pace*100).toFixed(0)}% of tgt</div></td>`;
-    }
-    totals.goal+=m.target;
-    const chip=m.opened?`<span class="newchip">New · ${m.opened}</span>`:(loc==="Hamilton"?`<span class="newchip" style="background:#c4cad6">Dormant</span>`:"");
-    return `<tr><td>${loc}${chip}</td>${cells}<td>${money(m.target)}</td></tr>`;
-  }).join("");
-  const totalRow=`<tr class="total"><td>Network total</td><td>${money(totals["Mar 2026"])}</td><td>${money(totals["Apr 2026"])}</td><td>${money(totals["May 2026"])}</td><td class="grp">${money(totals.mtd)}</td><td>${money(totals.proj)}</td><td class="grp">${money(totals.goal)}</td></tr>`;
-  document.querySelector("#mtx tbody").innerHTML=body+totalRow;
-}
-
-document.querySelectorAll(".tabs button").forEach(b=>{
-  b.addEventListener("click",()=>{
-    document.querySelectorAll(".tabs button").forEach(x=>x.classList.remove("active"));
-    document.querySelectorAll(".tabpane").forEach(x=>x.classList.remove("active"));
-    b.classList.add("active");
-    document.getElementById("tab-"+b.dataset.tab).classList.add("active");
-  });
-});
-
+function buildMatrix(){const order=Object.keys(MONTHLY).sort((a,b)=>(MONTHLY[b].proj??-1)-(MONTHLY[a].proj??-1));const head=`<tr><th>Location</th>${MCOLS.map(c=>`<th>${c}</th>`).join("")}<th class="grp">Live MTD</th><th>Proj.</th><th class="grp">Tier Goal</th></tr>`;document.querySelector("#mtx thead").innerHTML=head;const totals={mtd:0,proj:0,goal:0};MCOLS.forEach(c=>totals[c]=0);const body=order.map(loc=>{const m=MONTHLY[loc];const rowMax=Math.max(...[...MCOLS.map(c=>valFor(m,c)),m.mtd,m.proj].filter(v=>v!=null),1);let cells="",prev=null;MCOLS.forEach(c=>{const v=valFor(m,c);if(v==null){cells+=`<td class="dash">–</td>`;}else{totals[c]+=v;let sub="";if(prev!=null&&prev>0){const ch=(v-prev)/prev;sub=`<div class="cellsub ${ch>=0?'up-s':'down-s'}">${ch>=0?'▲':'▼'}${(Math.abs(ch)*100).toFixed(0)}%</div>`;}cells+=`<td class="heat" style="${heat(v,rowMax)}">${money(v)}${sub}</td>`;}if(v!=null)prev=v;});if(m.mtd==null){cells+=`<td class="dash grp">–</td>`;}else{totals.mtd+=m.mtd;cells+=`<td class="heat grp" style="${heat(m.mtd,rowMax)}">${money(m.mtd)}<div class="cellsub">MTD d${MTD_DAYS}/${MONTH_DAYS}</div></td>`;}if(m.proj==null){cells+=`<td class="dash">–</td>`;}else{totals.proj+=m.proj;const pace=m.proj/m.target;cells+=`<td class="heat" style="${heat(m.proj,rowMax)}">${money(m.proj)}<div class="cellsub ${pace>=0.95?'up-s':pace<0.8?'down-s':''}">${(pace*100).toFixed(0)}% of tgt</div></td>`;}totals.goal+=m.target;const chip=m.opened?`<span class="newchip">New · ${m.opened}</span>`:(m.preramp&&loc==="Hamilton"?`<span class="newchip" style="background:#c4cad6">Dormant</span>`:"");return`<tr><td>${loc}${chip}</td>${cells}<td>${money(m.target)}</td></tr>`;}).join("");const totalRow=`<tr class="total"><td>Network total</td>${MCOLS.map(c=>`<td>${money(totals[c])}</td>`).join("")}<td class="grp">${money(totals.mtd)}</td><td>${money(totals.proj)}</td><td class="grp">${money(totals.goal)}</td></tr>`;document.querySelector("#mtx tbody").innerHTML=body+totalRow;}
+document.querySelectorAll(".tabs button").forEach(b=>{b.addEventListener("click",()=>{document.querySelectorAll(".tabs button").forEach(x=>x.classList.remove("active"));document.querySelectorAll(".tabpane").forEach(x=>x.classList.remove("active"));b.classList.add("active");document.getElementById("tab-"+b.dataset.tab).classList.add("active");});});
 kpis();render();buildMatrix();
 </script>
 </body>
