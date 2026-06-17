@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>P3 Network Health Overview</title>
+<style>
+:root{
+  color-scheme: light;
+  --ink:#1a2230; --ink-soft:#56607a; --line:#e6e9f0; --bg:#f6f7fb; --card:#ffffff;
+  --p3:#0f2742; --p3-accent:#16b8a6; --p3-accent-deep:#0e8e80;
+  --green:#1f9d6b; --green-bg:#e6f6ee;
+  --amber:#c98a00; --amber-bg:#fdf3df;
+  --red:#d2453b; --red-bg:#fbe7e5;
+  --shadow:0 1px 2px rgba(16,28,48,.06),0 4px 16px rgba(16,28,48,.05);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.45}
+.wrap{max-width:1180px;margin:0 auto;padding:22px 22px 60px}
+header.hd{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:10px;margin-bottom:18px}
+.title{font-size:22px;font-weight:700;letter-spacing:-.2px;color:var(--p3)}
+.title .dot{color:var(--p3-accent)}
+.sub{color:var(--ink-soft);font-size:13px;margin-top:3px}
+.tag{font-size:12px;color:var(--ink-soft);background:#eef1f7;border:1px solid var(--line);padding:5px 10px;border-radius:999px;white-space:nowrap}
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:16px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 15px;box-shadow:var(--shadow)}
+.kpi .lbl{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--ink-soft);font-weight:600}
+.kpi .val{font-size:23px;font-weight:700;margin-top:6px;letter-spacing:-.4px}
+.kpi .delta{font-size:12px;margin-top:3px;font-weight:600}
+.up{color:var(--green)} .down{color:var(--red)} .neu{color:var(--ink-soft)}
+.row2{display:grid;grid-template-columns:1.1fr 1fr;gap:14px;margin-bottom:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 17px;box-shadow:var(--shadow)}
+.card h3{margin:0 0 12px;font-size:13px;text-transform:uppercase;letter-spacing:.5px;color:var(--ink-soft)}
+.statusbars{display:flex;flex-direction:column;gap:11px}
+.sb{display:grid;grid-template-columns:90px 1fr 64px;align-items:center;gap:10px}
+.sb .nm{font-weight:600}
+.bar{height:10px;background:#eef1f7;border-radius:999px;overflow:hidden}
+.bar > i{display:block;height:100%;border-radius:999px}
+.sb .ct{text-align:right;color:var(--ink-soft);font-variant-numeric:tabular-nums}
+.spot{display:flex;flex-direction:column;gap:12px}
+.spot .item{display:flex;gap:11px;align-items:flex-start}
+.spot .ic{width:30px;height:30px;border-radius:9px;flex:none;display:flex;align-items:center;justify-content:center;font-size:15px}
+.spot .k{font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--ink-soft);font-weight:600}
+.spot .v{font-weight:600;margin-top:1px}
+.spot .v small{font-weight:500;color:var(--ink-soft)}
+.tablecard{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);overflow:hidden}
+.tablecard .hd2{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;padding:15px 17px 12px}
+.tablecard h3{margin:0;font-size:13px;text-transform:uppercase;letter-spacing:.5px;color:var(--ink-soft)}
+.legend{display:flex;gap:12px;font-size:12px;color:var(--ink-soft)}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.swatch{width:9px;height:9px;border-radius:3px;display:inline-block}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:880px;font-variant-numeric:tabular-nums}
+th,td{padding:9px 12px;text-align:right;border-top:1px solid var(--line);white-space:nowrap}
+th:first-child,td:first-child{text-align:left;position:sticky;left:0;background:var(--card)}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--ink-soft);font-weight:600;cursor:pointer;user-select:none;border-top:none;background:#fafbfd;position:sticky;top:0}
+th:first-child{z-index:2;background:#fafbfd}
+th:hover{color:var(--ink)}
+th.arrow::after{content:" ▾";color:var(--p3-accent)}
+th.arrow.asc::after{content:" ▴"}
+tbody tr:hover td{background:#f9fbfd}
+tbody tr:hover td:first-child{background:#f9fbfd}
+.loc{font-weight:600}
+.pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:700}
+.p-green{color:var(--green);background:var(--green-bg)}
+.p-amber{color:var(--amber);background:var(--amber-bg)}
+.p-red{color:var(--red);background:var(--red-bg)}
+.flag{color:var(--ink-soft);font-weight:500}
+.goalcell{display:flex;align-items:center;gap:8px;justify-content:flex-end}
+.minibar{width:70px;height:7px;background:#eef1f7;border-radius:999px;overflow:hidden;flex:none}
+.minibar > i{display:block;height:100%;background:var(--p3-accent);border-radius:999px}
+.foot{margin-top:14px;color:var(--ink-soft);font-size:12px}
+.loc{display:flex;align-items:center;gap:7px}
+.caret{display:inline-flex;width:16px;height:16px;align-items:center;justify-content:center;color:var(--ink-soft);font-size:10px;transition:transform .15s;flex:none}
+tr.open .caret{transform:rotate(90deg);color:var(--p3-accent)}
+tr.clk{cursor:pointer}
+tr.detail > td{padding:0;border-top:none;background:#fbfcfe}
+tr.detail.hide{display:none}
+.mwrap{padding:6px 16px 16px 30px}
+.mhd{font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--ink-soft);font-weight:600;margin:8px 0 10px}
+.months{display:flex;gap:10px;flex-wrap:wrap}
+.mcol{flex:1;min-width:118px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 11px}
+.mcol.proj{border-style:dashed;border-color:#cdd4e3;background:#f7f9fc}
+.mcol .ml{font-size:11px;color:var(--ink-soft);font-weight:600;display:flex;justify-content:space-between;align-items:center}
+.mcol .mv{font-size:16px;font-weight:700;margin:6px 0 7px;letter-spacing:-.3px}
+.mtrack{height:8px;background:#eef1f7;border-radius:999px;overflow:hidden}
+.mtrack > i{display:block;height:100%;border-radius:999px}
+.mmom{font-size:11px;font-weight:600;margin-top:6px}
+.tgtnote{font-size:11px;color:var(--ink-soft);margin-top:3px}
+.badge{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;padding:1px 6px;border-radius:999px;background:#eef1f7;color:var(--ink-soft)}
+.badge.live{background:var(--p3-accent);color:#fff}
+.preramp-note{padding:14px 16px 16px 30px;color:var(--ink-soft);font-size:12.5px}
+.tabs{display:flex;gap:4px;margin-bottom:16px;border-bottom:1px solid var(--line)}
+.tabs button{appearance:none;border:none;background:none;font:inherit;font-weight:600;font-size:13.5px;color:var(--ink-soft);padding:9px 15px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
+.tabs button:hover{color:var(--ink)}
+.tabs button.active{color:var(--p3);border-bottom-color:var(--p3-accent)}
+.tabpane{display:none}
+.tabpane.active{display:block}
+.mtx-scroll{overflow-x:auto}
+table.mtx{border-collapse:separate;border-spacing:0;width:100%;min-width:820px;font-variant-numeric:tabular-nums}
+table.mtx th,table.mtx td{padding:9px 12px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--line)}
+table.mtx th{font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--ink-soft);font-weight:600;background:#fafbfd;position:sticky;top:0;z-index:1}
+table.mtx th:first-child,table.mtx td:first-child{text-align:left;position:sticky;left:0;background:var(--card);font-weight:600;z-index:2}
+table.mtx th:first-child{z-index:3}
+table.mtx .grp{border-left:1px solid var(--line)}
+table.mtx tr:hover td{background:#f9fbfd}
+table.mtx tr:hover td:first-child{background:#f9fbfd}
+table.mtx td.heat{position:relative;color:#10243f}
+.dash{color:#c4cad6}
+.cellsub{font-size:10px;color:var(--ink-soft);font-weight:600}
+.up-s{color:var(--green)} .down-s{color:var(--red)}
+table.mtx tr.total td{border-top:2px solid var(--p3);border-bottom:none;font-weight:700;background:#f3f6fb}
+table.mtx tr.total td:first-child{background:#f3f6fb}
+.newchip{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;padding:1px 5px;border-radius:999px;background:var(--p3-accent);color:#fff;margin-left:6px}
+.mtx-note{color:var(--ink-soft);font-size:12px;margin:0 0 14px}
+.mtx-legend{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--ink-soft);margin:12px 2px 0}
+.gradient{height:10px;width:120px;border-radius:3px;background:linear-gradient(90deg,#eaf6f3,#16b8a6)}
+@media (max-width:900px){.kpis{grid-template-columns:repeat(2,1fr)}.row2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hd">
+    <div>
+      <div class="title">P3 Recovery <span class="dot">·</span> Network Health Overview</div>
+      <div class="sub">Path to Tier Goal across all 16 operational locations · Week ending Sun 14 Jun 2026</div>
+    </div>
+    <div class="tag">Static snapshot · generated 16 Jun 2026 · all revenue incl. GST</div>
+  </header>
+
+  <nav class="tabs">
+    <button class="active" data-tab="overview">Network Overview</button>
+    <button data-tab="monthly">Monthly Matrix</button>
+  </nav>
+
+  <div id="tab-overview" class="tabpane active">
+  <section class="kpis" id="kpis"></section>
+
+  <div class="row2">
+    <div class="card">
+      <h3>Revenue status vs plan targets</h3>
+      <div class="statusbars">
+        <div class="sb"><span class="nm" style="color:var(--green)">On Track</span><div class="bar"><i style="width:62.5%;background:var(--green)"></i></div><span class="ct">10 locations</span></div>
+        <div class="sb"><span class="nm" style="color:var(--amber)">Close</span><div class="bar"><i style="width:25%;background:var(--amber)"></i></div><span class="ct">4 locations</span></div>
+        <div class="sb"><span class="nm" style="color:var(--red)">Behind</span><div class="bar"><i style="width:12.5%;background:var(--red)"></i></div><span class="ct">2 locations</span></div>
+      </div>
+      <p class="foot" style="margin-top:14px">On Track = at/above 95% of this week's plan target · Close = 80–95% · Behind = below 80%.</p>
+    </div>
+    <div class="card">
+      <h3>Spotlight</h3>
+      <div class="spot">
+        <div class="item"><div class="ic" style="background:var(--green-bg);color:var(--green)">▲</div><div><div class="k">Top performer this week</div><div class="v">Shellharbour <small>— $15,256, 172% of plan target</small></div></div></div>
+        <div class="item"><div class="ic" style="background:var(--amber-bg);color:var(--amber)">◷</div><div><div class="k">Approaching tier ratchet</div><div class="v">Stafford <small>— within ~$1K/wk of goal, ready to advance</small></div></div></div>
+        <div class="item"><div class="ic" style="background:var(--p3-accent);color:#fff">✓</div><div><div class="k">Crossover imminent (≤10 wks)</div><div class="v">Stafford <small>— Jul 2026</small></div></div></div>
+        <div class="item"><div class="ic" style="background:var(--red-bg);color:var(--red)">!</div><div><div class="k">Pre-ramp / needs review</div><div class="v">Hamilton &amp; Warners Bay <small>— placeholder plans, exclude or confirm</small></div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tablecard">
+    <div class="hd2">
+      <h3>Locations · path to tier goal <span style="text-transform:none;letter-spacing:0;font-weight:500;color:var(--p3-accent)">— click a row for monthly trend</span></h3>
+      <div class="legend">
+        <span><i class="swatch" style="background:var(--green)"></i>On Track</span>
+        <span><i class="swatch" style="background:var(--amber)"></i>Close</span>
+        <span><i class="swatch" style="background:var(--red)"></i>Behind</span>
+      </div>
+    </div>
+    <div class="scroll">
+      <table id="tbl">
+        <thead>
+          <tr>
+            <th data-k="name" data-t="s">Location</th>
+            <th data-k="status" data-t="s">Status</th>
+            <th data-k="lastWk" data-t="n">Rev last wk</th>
+            <th data-k="pct" data-t="n" class="arrow">% of target</th>
+            <th data-k="wow" data-t="n">WoW</th>
+            <th data-k="monthly" data-t="n">Baseline /mo</th>
+            <th data-k="goal" data-t="n">Tier goal</th>
+            <th data-k="progress" data-t="n">Progress to goal</th>
+            <th data-k="planWks" data-t="n">Plan wks</th>
+            <th data-k="crossover" data-t="d">Crossover</th>
+            <th data-k="active" data-t="n">Active mbrs</th>
+            <th data-k="netAdds" data-t="n">Net adds</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+  <p class="foot">Hapana transaction-day basis · monthly figures are exact daily sums (no week-straddle approximation). Hamilton ($0) and Warners Bay ($581) are pre-ramp/dormant and show placeholder plans — confirm or exclude at next refresh. Sortable: click any column header.</p>
+  </div>
+
+  <div id="tab-monthly" class="tabpane">
+    <p class="mtx-note">Total revenue (incl-GST) by calendar month — every location at a glance. Cells are shaded by value within each location's row. <strong>Jun 2026</strong> is the live month (through day 14 of 30); its projection is MTD × 30/14.</p>
+    <div class="tablecard">
+      <div class="mtx-scroll">
+        <table class="mtx" id="mtx"><thead></thead><tbody></tbody></table>
+      </div>
+    </div>
+    <div class="mtx-legend"><span>Lower</span><span class="gradient"></span><span>Higher (within each location)</span></div>
+    <p class="foot">Shellharbour and Warners Bay opened Jun 2026. Hamilton dormant since Dec 2025.</p>
+  </div>
+</div>
+
+<script>
+const NET={revenue:203870.35,wow:-0.0198,active:4138,newM:178,canc:96,netAdds:82};
+const cross={"Jul 2026":1,"Sep 2026":2,"Oct 2026":3,"Nov 2026":4,"Dec 2026":5,"Jan 2027":6};
+const DATA=[
+ {name:"Shellharbour",status:"On Track",lastWk:15256.03,pct:1.7247,wow:0.0773,monthly:37776,goal:50000,planWks:22,crossover:"Oct 2026",active:288,netAdds:17},
+ {name:"Winnellie",status:"On Track",lastWk:15292.89,pct:1.1419,wow:0.1773,monthly:57462,goal:70000,planWks:22,crossover:"Oct 2026",active:298,netAdds:22},
+ {name:"Moore Park",status:"On Track",lastWk:15973.95,pct:1.1031,wow:0.0660,monthly:62090,goal:70000,planWks:12,crossover:"Sep 2026",active:221,netAdds:5},
+ {name:"Pimpama",status:"On Track",lastWk:20605,pct:1.0812,wow:0.1247,monthly:82017,goal:100000,planWks:32,crossover:"Dec 2026",active:448,netAdds:7},
+ {name:"Springwood",status:"On Track",lastWk:12633.9,pct:1.0310,wow:0.0402,monthly:52495,goal:70000,planWks:29,crossover:"Dec 2026",active:246,netAdds:2},
+ {name:"Geelong",status:"On Track",lastWk:9334.3,pct:1.0007,wow:0.0224,monthly:39887,goal:50000,planWks:19,crossover:"Oct 2026",active:265,netAdds:12},
+ {name:"Stafford",status:"On Track",lastWk:15567.81,pct:0.9950,wow:0.0187,monthly:67483,goal:70000,planWks:8,crossover:"Jul 2026",active:331,netAdds:-5},
+ {name:"Burleigh Heads",status:"On Track",lastWk:23879.32,pct:0.9736,wow:-0.0478,monthly:105707,goal:120000,planWks:25,crossover:"Nov 2026",active:496,netAdds:16},
+ {name:"Ashmore",status:"On Track",lastWk:9234.08,pct:0.9718,wow:-0.0465,monthly:40636,goal:60000,planWks:36,crossover:"Jan 2027",active:204,netAdds:-1},
+ {name:"Labrador",status:"On Track",lastWk:11832.68,pct:0.9643,wow:-0.0263,monthly:52614,goal:70000,planWks:31,crossover:"Dec 2026",active:257,netAdds:3},
+ {name:"Richmond",status:"Close",lastWk:13655.29,pct:0.9480,wow:-0.1675,monthly:61837,goal:70000,planWks:14,crossover:"Sep 2026",active:287,netAdds:5},
+ {name:"Mount Maunganui",status:"Close",lastWk:7903.28,pct:0.9406,wow:-0.0603,monthly:35869,goal:50000,planWks:26,crossover:"Nov 2026",active:205,netAdds:-4},
+ {name:"Bayside",status:"Close",lastWk:21943.56,pct:0.9179,wow:-0.1772,monthly:102943,goal:120000,planWks:26,crossover:"Nov 2026",active:404,netAdds:2},
+ {name:"Port Melbourne",status:"Close",lastWk:10534.91,pct:0.8953,wow:-0.1597,monthly:50356,goal:70000,planWks:31,crossover:"Dec 2026",active:188,netAdds:1},
+ {name:"Warners Bay",status:"Behind",lastWk:223.35,pct:0.7229,wow:null,monthly:581,goal:40000,planWks:52,crossover:"Dec 2026",active:0,netAdds:0,preramp:true},
+ {name:"Hamilton",status:"Behind",lastWk:0,pct:0,wow:null,monthly:0,goal:40000,planWks:52,crossover:"Dec 2026",active:0,netAdds:0,preramp:true}
+];
+const MONTHLY={
+ "Ashmore":{months:["Mar 2026","Apr 2026","May 2026"],vals:[42351,42062,47257],mtd:18918,proj:40539,target:41638},
+ "Bayside":{months:["Mar 2026","Apr 2026","May 2026"],vals:[96201,88899,94927],mtd:48614,proj:104174,target:104144},
+ "Burleigh Heads":{months:["Mar 2026","Apr 2026","May 2026"],vals:[112637,100914,108562],mtd:48957,proj:104908,target:106757},
+ "Geelong":{months:["Mar 2026","Apr 2026","May 2026"],vals:[35300,36304,39590],mtd:18464,proj:39566,target:40855},
+ "Hamilton":{months:["Oct 2025","Nov 2025","Dec 2025"],vals:[0,0,0],mtd:null,proj:null,target:2600,preramp:true},
+ "Labrador":{months:["Mar 2026","Apr 2026","May 2026"],vals:[46716,48735,49807],mtd:23984,proj:51395,target:53661},
+ "Moore Park":{months:["Mar 2026","Apr 2026","May 2026"],vals:[58808,51982,58986],mtd:30959,proj:66340,target:63302},
+ "Mount Maunganui":{months:["Mar 2026","Apr 2026","May 2026"],vals:[39344,37205,36285],mtd:16314,proj:34958,target:36892},
+ "Pimpama":{months:["Mar 2026","Apr 2026","May 2026"],vals:[82860,77109,80670],mtd:38926,proj:83413,target:83045},
+ "Port Melbourne":{months:["Mar 2026","Apr 2026","May 2026"],vals:[44443,43554,49994],mtd:23072,proj:49439,target:51509},
+ "Richmond":{months:["Mar 2026","Apr 2026","May 2026"],vals:[64968,58318,62288],mtd:30058,proj:64410,target:62935},
+ "Shellharbour":{months:["Mar 2026","Apr 2026","May 2026"],vals:[4107,2675,6845],mtd:29417,proj:63037,target:38820,opened:"Jun 2026"},
+ "Springwood":{months:["Mar 2026","Apr 2026","May 2026"],vals:[60264,60180,57245],mtd:24780,proj:53100,target:53600},
+ "Stafford":{months:["Mar 2026","Apr 2026","May 2026"],vals:[78898,74186,69822],mtd:30849,proj:66106,target:68583},
+ "Warners Bay":{months:[null,null,null],vals:[null,null,null],mtd:268,proj:574,target:3181,preramp:true,opened:"Jun 2026"},
+ "Winnellie":{months:["Mar 2026","Apr 2026","May 2026"],vals:[60345,59140,56525],mtd:28283,proj:60607,target:58508}
+};
+const MTD_DAYS=14,MONTH_DAYS=30;
+const money=n=>"$"+Math.round(n).toLocaleString("en-AU");
+const pct=n=>(n*100).toFixed(0)+"%";
+const wowF=n=>n==null?"—":(n>=0?"+":"")+(n*100).toFixed(1)+"%";
+const pillCls={"On Track":"p-green","Close":"p-amber","Behind":"p-red"};
+
+function kpis(){
+  const c=[
+    {lbl:"Network weekly revenue",val:money(NET.revenue),d:wowF(NET.wow)+" vs prior wk",cls:NET.wow<0?"down":"up"},
+    {lbl:"Active members",val:NET.active.toLocaleString("en-AU"),d:"across network",cls:"neu"},
+    {lbl:"New members (wk)",val:NET.newM,d:"+"+NET.netAdds+" net adds",cls:"up"},
+    {lbl:"Cancellations (wk)",val:NET.canc,d:"network total",cls:"neu"},
+    {lbl:"On Track",val:"10 / 16",d:"4 close · 2 behind",cls:"neu"}
+  ];
+  document.getElementById("kpis").innerHTML=c.map(k=>
+    `<div class="kpi"><div class="lbl">${k.lbl}</div><div class="val">${k.val}</div><div class="delta ${k.cls}">${k.d}</div></div>`).join("");
+}
+
+function monthlyDetail(name){
+  const m=MONTHLY[name];
+  if(!m) return `<div class="preramp-note">No monthly data available.</div>`;
+  if(m.preramp){
+    if(name==="Hamilton") return `<div class="preramp-note">⚑ <strong>Hamilton</strong> — no revenue recorded since Dec 2025. Dormant/pre-ramp.</div>`;
+    return `<div class="preramp-note">⚑ <strong>Warners Bay</strong> — brand-new location. Only partial June data so far (${money(m.mtd)} MTD).</div>`;
+  }
+  const all=[...m.vals,m.proj,m.target].filter(v=>v!=null);
+  const max=Math.max(...all,1);
+  let cols="";
+  m.months.forEach((lbl,i)=>{
+    const v=m.vals[i]; if(v==null) return;
+    let mom="";
+    if(i>0&&m.vals[i-1]){const ch=(v-m.vals[i-1])/m.vals[i-1];mom=`<div class="mmom ${ch>=0?'up':'down'}">${ch>=0?'▲':'▼'} ${(Math.abs(ch)*100).toFixed(1)}% MoM</div>`;}
+    cols+=`<div class="mcol"><div class="ml">${lbl}<span class="badge">Actual</span></div><div class="mv">${money(v)}</div><div class="mtrack"><i style="width:${v/max*100}%;background:var(--p3)"></i></div>${mom}</div>`;
+  });
+  const pace=m.proj/m.target;
+  const paceCls=pace>=0.95?'up':pace>=0.8?'neu':'down';
+  cols+=`<div class="mcol proj"><div class="ml">Jun 2026 <span class="badge live">Live · day ${MTD_DAYS}/${MONTH_DAYS}</span></div>`+
+        `<div class="mv">${money(m.mtd)} <span style="font-size:11px;font-weight:600;color:var(--ink-soft)">MTD</span></div>`+
+        `<div class="mtrack"><i style="width:${m.mtd/max*100}%;background:var(--p3-accent)"></i></div>`+
+        `<div class="mmom ${paceCls}">Proj. ${money(m.proj)} · ${pct(pace)} of $${Math.round(m.target/1000)}K target</div>`+
+        `<div class="tgtnote">Projection = MTD × ${MONTH_DAYS}/${MTD_DAYS}</div></div>`;
+  return `<div class="mwrap"><div class="mhd">Monthly revenue (incl-GST) · exact calendar-month actuals</div><div class="months">${cols}</div></div>`;
+}
+
+let sortK="pct",sortAsc=false;
+const openRows=new Set();
+function render(){
+  const rows=[...DATA].sort((a,b)=>{
+    let av=a[sortK],bv=b[sortK];
+    if(sortK==="crossover"){av=cross[a.crossover];bv=cross[b.crossover];}
+    if(typeof av==="string")return sortAsc?av.localeCompare(bv):bv.localeCompare(av);
+    av=av==null?-1:av;bv=bv==null?-1:bv;
+    return sortAsc?av-bv:bv-av;
+  });
+  const tb=document.querySelector("#tbl tbody");
+  tb.innerHTML=rows.map(r=>{
+    const prog=Math.min(100,r.monthly/r.goal*100);
+    const flag=r.preramp?` <span class="flag">⚑</span>`:"";
+    const wowCls=r.wow==null?"neu":(r.wow>=0?"up":"down");
+    const isOpen=openRows.has(r.name);
+    return `<tr class="clk${isOpen?' open':''}" data-loc="${r.name}">
+      <td><span class="loc"><span class="caret">▶</span>${r.name}${flag}</span></td>
+      <td><span class="pill ${pillCls[r.status]}">${r.status}</span></td>
+      <td>${money(r.lastWk)}</td><td>${pct(r.pct)}</td>
+      <td class="${wowCls}">${wowF(r.wow)}</td>
+      <td>${money(r.monthly)}</td><td>${money(r.goal)}</td>
+      <td><div class="goalcell"><div class="minibar"><i style="width:${prog}%"></i></div>${prog.toFixed(0)}%</div></td>
+      <td>${r.planWks}</td><td>${r.crossover}</td>
+      <td>${r.active.toLocaleString("en-AU")}</td>
+      <td class="${r.netAdds>0?'up':r.netAdds<0?'down':'neu'}">${r.netAdds>0?'+':''}${r.netAdds}</td>
+    </tr>
+    <tr class="detail${isOpen?'':' hide'}" data-detail="${r.name}"><td colspan="12">${monthlyDetail(r.name)}</td></tr>`;
+  }).join("");
+  document.querySelectorAll("#tbl tr.clk").forEach(tr=>{
+    tr.addEventListener("click",()=>{
+      const loc=tr.dataset.loc;
+      if(openRows.has(loc))openRows.delete(loc);else openRows.add(loc);
+      const det=tr.parentNode.querySelector(`tr[data-detail="${CSS.escape(loc)}"]`);
+      tr.classList.toggle("open");det.classList.toggle("hide");
+    });
+  });
+  document.querySelectorAll("#tbl th").forEach(th=>{
+    th.classList.remove("arrow","asc");
+    if(th.dataset.k===sortK){th.classList.add("arrow");if(sortAsc)th.classList.add("asc");}
+  });
+}
+document.querySelectorAll("#tbl th").forEach(th=>{
+  th.addEventListener("click",()=>{
+    const k=th.dataset.k;
+    if(k===sortK)sortAsc=!sortAsc;else{sortK=k;sortAsc=(th.dataset.t==="s");}
+    render();
+  });
+});
+
+const MCOLS=["Mar 2026","Apr 2026","May 2026"];
+const heat=(v,max)=>v==null||max<=0?"":`background:rgba(22,184,166,${(0.05+0.45*(v/max)).toFixed(3)})`;
+function valFor(m,label){const i=m.months.indexOf(label);return i>=0?m.vals[i]:null;}
+
+function buildMatrix(){
+  const order=Object.keys(MONTHLY).sort((a,b)=>(MONTHLY[b].proj??-1)-(MONTHLY[a].proj??-1));
+  const head=`<tr><th>Location</th><th>Mar 2026</th><th>Apr 2026</th><th>May 2026</th><th class="grp">Jun 2026 MTD</th><th>Jun 2026 Proj.</th><th class="grp">Tier Goal</th></tr>`;
+  document.querySelector("#mtx thead").innerHTML=head;
+  const totals={"Mar 2026":0,"Apr 2026":0,"May 2026":0,mtd:0,proj:0,goal:0};
+  const body=order.map(loc=>{
+    const m=MONTHLY[loc];
+    const rowMax=Math.max(...[...MCOLS.map(c=>valFor(m,c)),m.mtd,m.proj].filter(v=>v!=null),1);
+    let cells="",prev=null;
+    MCOLS.forEach(c=>{
+      const v=valFor(m,c);
+      if(v==null){cells+=`<td class="dash">–</td>`;}
+      else{
+        totals[c]+=v;
+        let sub="";
+        if(prev!=null&&prev>0){const ch=(v-prev)/prev;sub=`<div class="cellsub ${ch>=0?'up-s':'down-s'}">${ch>=0?'▲':'▼'}${(Math.abs(ch)*100).toFixed(0)}%</div>`;}
+        cells+=`<td class="heat" style="${heat(v,rowMax)}">${money(v)}${sub}</td>`;
+      }
+      if(v!=null)prev=v;
+    });
+    if(m.mtd==null){cells+=`<td class="dash grp">–</td>`;}
+    else{totals.mtd+=m.mtd;cells+=`<td class="heat grp" style="${heat(m.mtd,rowMax)}">${money(m.mtd)}<div class="cellsub">MTD d14/30</div></td>`;}
+    if(m.proj==null){cells+=`<td class="dash">–</td>`;}
+    else{
+      totals.proj+=m.proj;
+      const pace=m.proj/m.target;
+      cells+=`<td class="heat" style="${heat(m.proj,rowMax)}">${money(m.proj)}<div class="cellsub ${pace>=0.95?'up-s':pace<0.8?'down-s':''}">${(pace*100).toFixed(0)}% of tgt</div></td>`;
+    }
+    totals.goal+=m.target;
+    const chip=m.opened?`<span class="newchip">New · ${m.opened}</span>`:(loc==="Hamilton"?`<span class="newchip" style="background:#c4cad6">Dormant</span>`:"");
+    return `<tr><td>${loc}${chip}</td>${cells}<td>${money(m.target)}</td></tr>`;
+  }).join("");
+  const totalRow=`<tr class="total"><td>Network total</td><td>${money(totals["Mar 2026"])}</td><td>${money(totals["Apr 2026"])}</td><td>${money(totals["May 2026"])}</td><td class="grp">${money(totals.mtd)}</td><td>${money(totals.proj)}</td><td class="grp">${money(totals.goal)}</td></tr>`;
+  document.querySelector("#mtx tbody").innerHTML=body+totalRow;
+}
+
+document.querySelectorAll(".tabs button").forEach(b=>{
+  b.addEventListener("click",()=>{
+    document.querySelectorAll(".tabs button").forEach(x=>x.classList.remove("active"));
+    document.querySelectorAll(".tabpane").forEach(x=>x.classList.remove("active"));
+    b.classList.add("active");
+    document.getElementById("tab-"+b.dataset.tab).classList.add("active");
+  });
+});
+
+kpis();render();buildMatrix();
+</script>
+</body>
+</html>
