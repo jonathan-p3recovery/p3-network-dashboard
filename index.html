@@ -122,7 +122,7 @@ table.mtx tr.total td:first-child{background:#f3f6fb}
   <header class="hd">
     <div>
       <div class="title">P3 Recovery <span class="dot">·</span> Network Health Overview</div>
-      <div class="sub">Path to Tier Goal across all 16 operational locations · Week ending Sun 14 Jun 2026</div>
+      <div class="sub">Path to Tier Goal across 14 trading locations · Week ending Sun 14 Jun 2026</div>
     </div>
     <div class="tag">Static snapshot · generated 17 Jun 2026 · all revenue incl. GST</div>
   </header>
@@ -136,9 +136,9 @@ table.mtx tr.total td:first-child{background:#f3f6fb}
     <div class="card">
       <h3>Revenue status vs plan targets</h3>
       <div class="statusbars">
-        <div class="sb"><span class="nm" style="color:var(--green)">On Track</span><div class="bar"><i style="width:62.5%;background:var(--green)"></i></div><span class="ct">10 locations</span></div>
-        <div class="sb"><span class="nm" style="color:var(--amber)">Close</span><div class="bar"><i style="width:25%;background:var(--amber)"></i></div><span class="ct">4 locations</span></div>
-        <div class="sb"><span class="nm" style="color:var(--red)">Behind</span><div class="bar"><i style="width:12.5%;background:var(--red)"></i></div><span class="ct">2 locations</span></div>
+        <div class="sb"><span class="nm" style="color:var(--green)">On Track</span><div class="bar"><i style="width:71.4%;background:var(--green)"></i></div><span class="ct">10 locations</span></div>
+        <div class="sb"><span class="nm" style="color:var(--amber)">Close</span><div class="bar"><i style="width:28.6%;background:var(--amber)"></i></div><span class="ct">4 locations</span></div>
+        <div class="sb"><span class="nm" style="color:var(--red)">Behind</span><div class="bar"><i style="width:0%;background:var(--red)"></i></div><span class="ct">0 locations</span></div>
       </div>
       <p class="foot" style="margin-top:14px">On Track = at/above 95% of this week's plan target · Close = 80–95% · Behind = below 80%.</p>
     </div>
@@ -148,7 +148,7 @@ table.mtx tr.total td:first-child{background:#f3f6fb}
         <div class="item"><div class="ic" style="background:var(--green-bg);color:var(--green)">▲</div><div><div class="k">Top performer this week</div><div class="v">Shellharbour <small>— $15,256, 172% of plan target</small></div></div></div>
         <div class="item"><div class="ic" style="background:var(--amber-bg);color:var(--amber)">◷</div><div><div class="k">Approaching tier ratchet</div><div class="v">Stafford <small>— within ~$1K/wk of goal, ready to advance</small></div></div></div>
         <div class="item"><div class="ic" style="background:var(--p3-accent);color:#fff">✓</div><div><div class="k">Crossover imminent (≤10 wks)</div><div class="v">Stafford <small>— Jul 2026</small></div></div></div>
-        <div class="item"><div class="ic" style="background:var(--red-bg);color:var(--red)">!</div><div><div class="k">Pre-ramp / needs review</div><div class="v">Hamilton &amp; Warners Bay <small>— placeholder plans, exclude or confirm</small></div></div></div>
+        <div class="item"><div class="ic" style="background:var(--red-bg);color:var(--red)">!</div><div><div class="k">Pre-ramp / needs review</div><div class="v">Hamilton &amp; Warners Bay <small>— pre-launch, excluded until first active members</small></div></div></div>
       </div>
     </div>
   </div>
@@ -193,12 +193,12 @@ table.mtx tr.total td:first-child{background:#f3f6fb}
       </div>
     </div>
     <div class="mtx-legend"><span>Lower</span><span class="gradient"></span><span>Higher (within each location)</span></div>
-    <p class="foot">Shellharbour and Warners Bay opened in Jun 2026 — their Mar–May figures are pre-opening soft trade. Hamilton has had no recorded revenue since Dec 2025 (dormant). Network total excludes dormant/pre-opening months.</p>
+    <p class="foot">Network figures cover the 14 trading locations only. Hamilton (dormant since Dec 2025) and Warners Bay (opened Jun 2026, $223 soft-trade) are excluded until they record active members — they re-enter automatically once trading. Shellharbour also opened Jun 2026; its Mar–May figures are pre-opening soft trade.</p>
   </div>
 </div>
 <script>
 // ── DATA — updated by Update P3 Dashboard skill ──
-const NET={revenue:203870.35, wow:-0.0198, active:4138, newM:178, canc:96, netAdds:82};
+const NET={revenue:203647.00, wow:-0.0207, active:4138, newM:178, canc:96, netAdds:82};
 const cross={"Jul 2026":1,"Sep 2026":2,"Oct 2026":3,"Nov 2026":4,"Dec 2026":5,"Jan 2027":6};
 const DATA=[
  {name:"Shellharbour",status:"On Track",lastWk:15256.03,pct:1.7247,wow:0.0773,monthly:37776,goal:50000,planWks:22,crossover:"Oct 2026",active:288,netAdds:17},
@@ -214,16 +214,13 @@ const DATA=[
  {name:"Richmond",status:"Close",lastWk:13655.29,pct:0.9480,wow:-0.1675,monthly:61837,goal:70000,planWks:14,crossover:"Sep 2026",active:287,netAdds:5},
  {name:"Mount Maunganui",status:"Close",lastWk:7903.28,pct:0.9406,wow:-0.0603,monthly:35869,goal:50000,planWks:26,crossover:"Nov 2026",active:205,netAdds:-4},
  {name:"Bayside",status:"Close",lastWk:21943.56,pct:0.9179,wow:-0.1772,monthly:102943,goal:120000,planWks:26,crossover:"Nov 2026",active:404,netAdds:2},
- {name:"Port Melbourne",status:"Close",lastWk:10534.91,pct:0.8953,wow:-0.1597,monthly:50356,goal:70000,planWks:31,crossover:"Dec 2026",active:188,netAdds:1},
- {name:"Warners Bay",status:"Behind",lastWk:223.35,pct:0.7229,wow:null,monthly:581,goal:40000,planWks:52,crossover:"Dec 2026",active:0,netAdds:0,preramp:true},
- {name:"Hamilton",status:"Behind",lastWk:0,pct:0,wow:null,monthly:0,goal:40000,planWks:52,crossover:"Dec 2026",active:0,netAdds:0,preramp:true}
+ {name:"Port Melbourne",status:"Close",lastWk:10534.91,pct:0.8953,wow:-0.1597,monthly:50356,goal:70000,planWks:31,crossover:"Dec 2026",active:188,netAdds:1}
 ];
 const MONTHLY={
  "Ashmore":{months:["Mar 2026","Apr 2026","May 2026"],vals:[42351,42062,47257],mtd:18918,proj:40539,target:41638},
  "Bayside":{months:["Mar 2026","Apr 2026","May 2026"],vals:[96201,88899,94927],mtd:48614,proj:104174,target:104144},
  "Burleigh Heads":{months:["Mar 2026","Apr 2026","May 2026"],vals:[112637,100914,108562],mtd:48957,proj:104908,target:106757},
  "Geelong":{months:["Mar 2026","Apr 2026","May 2026"],vals:[35300,36304,39590],mtd:18464,proj:39566,target:40855},
- "Hamilton":{months:["Oct 2025","Nov 2025","Dec 2025"],vals:[0,0,0],mtd:null,proj:null,target:2600,preramp:true},
  "Labrador":{months:["Mar 2026","Apr 2026","May 2026"],vals:[46716,48735,49807],mtd:23984,proj:51395,target:53661},
  "Moore Park":{months:["Mar 2026","Apr 2026","May 2026"],vals:[58808,51982,58986],mtd:30959,proj:66340,target:63302},
  "Mount Maunganui":{months:["Mar 2026","Apr 2026","May 2026"],vals:[39344,37205,36285],mtd:16314,proj:34958,target:36892},
@@ -233,7 +230,6 @@ const MONTHLY={
  "Shellharbour":{months:["Mar 2026","Apr 2026","May 2026"],vals:[4107,2675,6845],mtd:29417,proj:63037,target:38820,opened:"Jun 2026"},
  "Springwood":{months:["Mar 2026","Apr 2026","May 2026"],vals:[60264,60180,57245],mtd:24780,proj:53100,target:53600},
  "Stafford":{months:["Mar 2026","Apr 2026","May 2026"],vals:[78898,74186,69822],mtd:30849,proj:66106,target:68583},
- "Warners Bay":{months:[null,null,null],vals:[null,null,null],mtd:268,proj:574,target:3181,preramp:true,opened:"Jun 2026"},
  "Winnellie":{months:["Mar 2026","Apr 2026","May 2026"],vals:[60345,59140,56525],mtd:28283,proj:60607,target:58508}
 };
 const MTD_DAYS=14;
