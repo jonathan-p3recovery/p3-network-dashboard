@@ -1,96 +1,91 @@
 # P3 Network Dashboard — Process & Recovery Runbook
 
-This repo is the **single source of truth** for the P3 Recovery weekly network
-dashboard process. If a laptop dies, this file plus the `skills/` folder is enough
-to rebuild the whole pipeline on a new machine. Keep it current.
+Single source of truth for the P3 Recovery weekly network dashboard. This file plus
+the `skills/` folder rebuilds the whole pipeline on a new machine.
 
-Last updated: 18 Jun 2026.
+Last updated: 22 Jun 2026.
+
+**Documentation rule:** whenever any P3-owned skill changes, its documentation is
+updated immediately (no asking). See §8 for the skill→doc registry.
 
 ---
 
 ## 1. What this pipeline does
 
-Each week it turns the Hapana "Weekly Performance, All Locations" extract into the
-live network dashboard at **https://p3-network-dashboard.netlify.app**, archives the
-week's files, and notifies the leadership team.
+Each week it turns the Hapana "Weekly Performance" extract into the live network
+dashboard at **https://p3-network-dashboard.netlify.app**, archives the week's files,
+and notifies the leadership team.
 
-Flow: **raw extract (Google Drive) → analytics build → network dashboard build →
+Flow: **drop raw extract in Drive → analytics build → dashboard build → validate →
 publish to GitHub → Netlify deploys → archive to Drive → email the team.**
 
-## 2. Where everything lives (the cloud copies that matter)
+## 2. Where everything lives
 
 - **Process / skills** — this repo, `skills/` folder (versioned, recoverable).
-  - `skills/p3-hq-weekly-dashboards*.skill` — the analytics skill (builds the per-location xlsx + network overview).
-  - `skills/update-p3-network-health-dashboard/` — builds `index.html` from the network overview.
-  - `skills/hq-weekly-dashboard-sequence/` — the orchestrator that runs the whole weekly sequence.
-- **Live dashboard code** — this repo, `index.html` (deployed by Netlify on every push to `main`).
-- **Raw inputs + weekly outputs archive** — Google Drive, parent folder id
-  `13mAEcqR5bWrCN7x9_8l2l0KH52YFga8s`, one `YYYY_MM_DD_Week` subfolder per week.
-- **Live site host** — Netlify, auto-deploys from this repo's `main` branch.
+- **Live dashboard code** — this repo, `index.html` (Netlify deploys on every push to `main`).
+- **Inputs + weekly outputs + archive** — Google Drive, synced to the Mac via **Google Drive for Desktop** ("Available offline"):
+  `…/Library/CloudStorage/GoogleDrive-jonathan@p3recovery.com/Shared drives/P3 Global/Revenue /HQ_Location_Dashboards_V2`
+  (note trailing space in `Revenue `). One `YYYY_MM_DD_Week` folder per week; the pending one is `YYYY_MM_DD_Week__DROP_RAW_HERE`.
+- **Live host** — Netlify, auto-deploys from `main`.
 
-Because the repo, Drive, and Netlify are all cloud, **no single computer holds the
-only copy of anything** once a run has been pushed.
+Repo, Drive and Netlify are all cloud — no single computer holds the only copy.
 
-## 3. Connectors the pipeline uses
+## 3. How the raw data flows (Google Drive for Desktop)
 
-- **Google Drive** — read raw extract, create weekly folders, upload archives. Connected. Can create folders (`canAddChildren` confirmed on the archive parent).
-- **Gmail** — draft the team notification. Connected, but **draft-only** (the connector has no send tool). The draft is created; sending is currently a manual click, or routed via the cloud job in the target architecture (section 6).
-- **GitHub** — no MCP connector exists. Publishing is done on a trusted machine (see section 5), never by handing a token to the agent.
+The Drive folder is a **real synced folder on the Mac**, set "Available offline," so
+files dropped in it are readable by the agent and outputs written back sync up
+automatically. **No chat uploads, no connector size limits.** The weekly export comes
+as two files: `Weekly Performance, All Locations*.xlsx` (primary) + `Weekly
+Performance, NZ*.xlsx` (Mount Maunganui supplement) — both needed for the full 16-location network.
 
-## 4. Recover on a brand-new machine
+## 4. Connectors
 
-1. Install the Claude desktop app + Cowork.
-2. Reconnect connectors: Google Drive, Gmail.
-3. Clone this repo: `git clone https://github.com/jonathan-p3recovery/p3-network-dashboard.git`
-4. Authenticate GitHub once on the machine (GitHub Desktop sign-in, or `gh auth login`) so pushes work.
-5. Re-install the skills from `skills/` (open each `.skill` / SKILL.md via Settings → Capabilities).
-6. Point Cowork at the local repo folder and the P3 Launch HQ working folder.
+- **Google Drive for Desktop** — the input/output/archive transport (synced folder). The Drive *connector* (MCP) is used only for small ops (folder share links, metadata).
+- **Gmail** — drafts the team email. Draft-only (no send tool); sending is a manual click.
+- **GitHub** — no connector. Publish via GitHub Desktop on the Mac; never hand a token to the agent, never run git from the agent sandbox (it leaves un-deletable `.git/*.lock` files — clear them in Finder under `.git` if it ever happens).
 
-That's the whole recovery. Target time: ~30 minutes.
+## 5. Recover on a new machine (~30 min)
 
-## 5. Publishing to GitHub — current options (the one human-dependent step)
+1. Install Claude desktop + Cowork; reconnect Google Drive + Gmail.
+2. Install Google Drive for Desktop, sign in as jonathan@p3recovery.com, set the `HQ_Location_Dashboards_V2` folder "Available offline".
+3. Clone `github.com/jonathan-p3recovery/p3-network-dashboard`; sign into GitHub Desktop.
+4. Re-install the skills from `skills/` via Settings → Capabilities.
+5. Point Cowork at the repo folder, the P3 Launch HQ working folder, and the CloudStorage Drive folder.
 
-The Claude agent runs in an isolated Linux sandbox that **cannot** reach a Mac's
-keychain or push on its own, and there is no GitHub connector. So today, publishing
-needs one of:
+## 6. Publishing to GitHub — the one human-dependent step
 
-- **GitHub Desktop** — agent commits, human clicks "Push origin" (~5 sec).
-- **Mac-side auto-push watcher** — a `launchd` job that pushes whenever `index.html`
-  changes, using the machine's own stored credential. Click-free, but Mac-dependent
-  and only runs while that Mac is on.
+Agent writes `index.html` to the repo; **the human commits + Pull origin + Push origin
+in GitHub Desktop**. The agent shell can't push (isolated sandbox, no keychain) and
+must never use a stored token.
 
-Neither is the long-term answer (see section 6). The agent must **never** read a
-personal access token from project knowledge to push — tokens leak, expire, and
-can't be cleanly revoked from inside an automation.
+## 7. Target architecture — fully cloud (roadmap)
 
-## 6. Target architecture — fully cloud, not people-dependent (roadmap)
+Move the build off the agent into **GitHub Actions** (scheduled): pull the extract
+from Drive (service account), build, commit `index.html` (Netlify deploys), archive to
+Drive, send email via Gmail API — with validation gates that email an alert instead of
+publishing on bad data. Credentials live in GitHub Actions Secrets (never through the
+agent). It's a build project needing dev support; bridge stays until then. Daily/live
+data = same workflow on a daily cron, ideally pulling a Hapana API directly.
 
-Goal: remove every human/Mac dependency. The blocker is that the build currently
-runs inside the Claude agent (which needs a host machine). The fix is to move the
-build into the cloud:
+## 8. Skills & documentation (registry)
 
-1. **Convert the two skills into standalone Python** (the dashboard build already is
-   essentially deterministic; the analytics build is data processing — both port to
-   plain scripts).
-2. **GitHub Actions, scheduled (cron)** runs those scripts: pulls the raw extract
-   from Google Drive (service account), builds the dashboard, commits `index.html`
-   (Netlify then auto-deploys), uploads the archive to Drive, and sends the team
-   email via SMTP/Gmail API with a service credential.
-3. **Validation gates** in the workflow hard-stop on bad data (revenue out of band,
-   wrong location count, nulls, Netlify not updated) and **email an alert** instead
-   of publishing — a human is involved only on exception.
-4. **Daily / live-data future:** same workflow on a daily schedule; if Hapana
-   exposes an API, the job pulls live data directly and the manual extract disappears
-   entirely.
+P3-owned skills and the doc kept current with each. **When a skill changes, update its
+doc here too.**
 
-This is the path to "no one is a dependency." It's a build, not a toggle — track it
-as a project.
+| Skill | What it does | Doc |
+|-------|--------------|-----|
+| `hq-weekly-dashboard-sequence` | Orchestrates the full weekly run (this document's flow) | This runbook (§1–6) |
+| `p3-hq-weekly-dashboards` | Builds per-location xlsx + network overview from the extract | This runbook §3 + the skill's own SKILL.md |
+| `update-p3-network-health-dashboard` | Builds `index.html` from the network overview | This runbook §6 + the skill's own SKILL.md |
 
-## 7. Weekly run — quick reference
+This runbook is maintained in **three synced copies** (keep in step): repo
+`RECOVERY_RUNBOOK.md` (master), the copy in the Drive `HQ_Location_Dashboards_V2`
+folder, and a local copy in `P3 Launch HQ`.
 
-1. Drop the raw Hapana extract into the pre-created `YYYY_MM_DD_Week__DROP_RAW_HERE`
-   folder in Drive.
+## 9. Weekly run — quick reference
+
+1. Drop the raw export(s) into the `…__DROP_RAW_HERE` folder in Drive.
 2. Run the **HQ-Weekly-Dashboard-Sequence** skill.
-3. It normalizes the folder name, builds + validates the dashboard, writes `index.html`,
-   archives to Drive, creates next week's drop folder, and drafts the team email.
-4. Publish (push) and send the drafted email (current manual touch points).
+3. It builds + validates, writes `index.html`, archives to Drive, renames the week
+   folder, creates next week's drop folder, and drafts the team email (with the Drive link).
+4. Two clicks: GitHub Desktop (commit → Pull → Push), then send the Gmail draft once the site is live.

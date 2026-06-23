@@ -2,175 +2,138 @@
 name: hq-weekly-dashboard-sequence
 description: >-
   End-to-end orchestrator for the P3 Recovery weekly network dashboard ("the
-  Monday run"). Pulls the week's raw Hapana extract from Google Drive, builds the
-  per-location analytics and the network HTML dashboard, validates the numbers,
-  archives everything back to Drive, pre-creates next week's drop folder, and
-  drafts the team notification email — leaving two deliberate human clicks
-  (publish to GitHub, send the email). Use whenever the user says run the weekly
-  dashboard sequence, do the Monday dashboard run, refresh and publish the network
-  dashboard, "kick off the weekly pipeline", or has dropped a fresh Hapana extract
-  in the Drive drop folder. For a single stage only, use the underlying skill
-  instead (p3-hq-weekly-dashboards for the xlsx analytics,
+  Monday run"). Reads the week's raw Hapana extract from the synced Google Drive
+  drop folder, builds the per-location analytics and the network HTML dashboard,
+  validates the numbers, archives outputs back to the same Drive week folder,
+  renames the folder and pre-creates next week's drop folder, and drafts the team
+  notification email — leaving two human clicks (publish to GitHub, send the
+  email). Use whenever the user says run the weekly dashboard sequence, do the
+  Monday dashboard run, refresh and publish the network dashboard, "kick off the
+  weekly pipeline", or has dropped a fresh Hapana extract in the Drive drop
+  folder. For a single stage only, use the underlying skill instead
+  (p3-hq-weekly-dashboards for the xlsx analytics,
   update-p3-network-health-dashboard for the HTML rebuild).
 ---
 
-# HQ Weekly Dashboard Sequence (bridge)
+# HQ Weekly Dashboard Sequence
 
-You are the P3 Weekly Dashboard orchestrator. Run the steps below **in order**,
-reporting a one-line status after each. Honour every "stop" gate — they exist so a
-bad or stale run never reaches the repo or the team's inbox.
+You are the P3 Weekly Dashboard orchestrator. Run the steps in order, reporting a
+one-line status after each. Honour every "stop" gate.
 
-This is the **bridge** design: everything automatable runs unattended; two
-deliberate human touches remain — **publishing to GitHub** (Step 8) and **sending
-the email** (Step 10) — because the agent shell can't push to GitHub and the Gmail
-connector is draft-only. The cloud-native, zero-touch version is a future project;
-see `RECOVERY_RUNBOOK.md` section 6 in the repo.
+Two human touches remain by design: **publishing to GitHub** (Step 8) and **sending
+the email** (Step 11) — the agent shell can't push to GitHub and the Gmail connector
+is draft-only. Never run git from the sandbox (it leaves un-deletable lock files);
+the user commits via GitHub Desktop.
 
-Australian English in prose. All revenue incl-GST. Today's real date governs "this
-week" — confirm with the system clock if unsure.
+Australian English. Revenue incl-GST. Use the system clock for "today".
 
-## Key locations & connectors
+## Key paths
 
-- **Google Drive parent (archive + input):** folder id `13mAEcqR5bWrCN7x9_8l2l0KH52YFga8s`.
-  Each week is a subfolder `YYYY_MM_DD_Week` (week-ending Sunday). Use the connected
-  **Google Drive** connector (search/create/upload/download).
-- **Local working folder:** `/Users/jonathanmcalees/Documents/Claude/Projects/P3 Launch HQ`
-  (where the analytics skill reads/writes).
-- **Repo (live dashboard):** `/Users/jonathanmcalees/Documents/GitHub/p3-network-dashboard`,
-  file `index.html`, branch `main`, remote `jonathan-p3recovery/p3-network-dashboard`.
-- **Email:** the connected **Gmail** connector (draft only).
+- **Drive pipeline folder (synced via Google Drive for Desktop, "Available offline"):**
+  `…/Library/CloudStorage/GoogleDrive-jonathan@p3recovery.com/Shared drives/P3 Global/Revenue /HQ_Location_Dashboards_V2`
+  (note the trailing space in `Revenue `). In bash, use this session's CloudStorage
+  mount equivalent. This is the single home for inputs, outputs and archive — read and
+  write it directly with file tools/bash; no Drive connector needed for file transfer.
+  Each week is a subfolder `YYYY_MM_DD_Week`; the pending one is `YYYY_MM_DD_Week__DROP_RAW_HERE`.
+- **Analytics script:** `p3-hq-weekly-dashboards` skill → `scripts/build_dashboards.py`.
+- **Repo (live dashboard):** `/Users/jonathanmcalees/Documents/GitHub/p3-network-dashboard`, `index.html`, branch `main`.
+- **Email:** Gmail connector (draft only). **Drive link** for the email = the week folder's share URL (get via the Drive connector `search_files` `title = '<YYYY_MM_DD_Week>'` → `viewUrl`).
 
-## Step 1 — Find this week's raw extract in Drive
+## Step 1 — Find the raw extract in the Drive drop folder
 
-In the Drive parent folder, locate the new week's raw Hapana "Weekly Performance,
-All Locations" extract. It will be in either:
+In the Drive pipeline folder, open the `YYYY_MM_DD_Week__DROP_RAW_HERE` folder. Expect:
 
-- a **drop folder** named like `YYYY_MM_DD_Week__DROP_RAW_HERE` (pre-created by the
-  previous run), or
-- the most recent `YYYY_MM_DD_Week` folder that contains a raw extract not yet
-  processed.
+- `Weekly Performance, All Locations*.xlsx` — primary (AU + most locations).
+- `Weekly Performance, NZ*.xlsx` — supplement (Mount Maunganui).
 
-If no raw extract is found anywhere new, **stop**: "No new weekly extract in Drive —
-nothing to run." (This is the normal answer mid-week.)
+If the drop folder is empty / absent, **stop**: "No new extract in the Drive drop folder."
+If files look like cloud placeholders (0 bytes / unreadable), the folder isn't
+"Available offline" yet — ask the user to enable it.
 
-## Step 2 — Confirm it's genuinely a new week
+## Step 2 — Confirm it's a genuinely new week
 
-Read the raw extract enough to derive the **actual week-ending date** from the data
-(don't trust the folder label alone). Compare against the latest week already
-published (the newest clean `YYYY_MM_DD_Week` folder and the date in the live repo's
-`index.html`). If it matches a week already live, **stop** — re-publishing and
-re-emailing a week the team already has is the main failure mode this guard prevents.
-Override only if the user explicitly says to re-run a past week.
+Read the extract enough to derive the **actual week-ending Sunday** from the data
+(last complete week; ignore trailing all-zero future rows). Compare to the newest
+clean `YYYY_MM_DD_Week` folder and the date in the live repo `index.html`. If it
+matches a week already published, **stop** (override only if the user says re-run).
 
-## Step 3 — Download the raw extract locally & normalize the folder name
+## Step 3 — Run the analytics build (outputs straight to Drive)
 
-Download the raw extract from Drive into the local working folder
-`/Users/jonathanmcalees/Documents/Claude/Projects/P3 Launch HQ` so the analytics
-skill can read it. Then **normalize the Drive folder name** to the clean
-`YYYY_MM_DD_Week` (strip the `__DROP_RAW_HERE` suffix) using the derived week-ending
-date, so a wrong pre-created guess self-corrects.
+Run `build_dashboards.py` with output going into the Drive pipeline folder:
 
-## Step 4 — Run the analytics skill
+```
+python <…>/build_dashboards.py \
+  --input "<drop folder>/Weekly Performance, All Locations*.xlsx" \
+  --supplement "<drop folder>/Weekly Performance, NZ*.xlsx" \
+  --output-dir "<Drive pipeline folder>" \
+  --no-libreoffice
+```
 
-Run the saved skill **`p3-hq-weekly-dashboards`**. Let it finish fully. Report:
+The script creates a clean `<YYYY_MM_DD_Week>` folder (named for the last complete
+week) with one xlsx per location + `P3_HQ_Network_Overview_V2.xlsx`. Report: week
+ending, location count (expect all incl. Mount Maunganui), any errors.
 
-- Week ending date processed
-- Number of locations in the output
-- Any errors or warnings
+## Step 4 — Normalize folders
 
-If it fails, **stop** and report the error.
+- Move the two raw extracts from the `…__DROP_RAW_HERE` folder into the new clean
+  `<YYYY_MM_DD_Week>` folder (so raw + outputs sit together).
+- Delete the now-empty `…__DROP_RAW_HERE` folder.
+- Create **next week's** drop folder: `<this week + 7 days>_Week__DROP_RAW_HERE`.
 
-## Step 5 — Verify analytics outputs exist locally
+(All via file tools/bash on the synced folder — it syncs to Drive automatically.)
 
-In the new week's `HQ_Location_Dashboards_V2/YYYY_MM_DD_Week/` folder, confirm both
-are present and freshly modified (mtime within this run):
+## Step 5 — Verify outputs
 
-- `P3_HQ_Network_Overview*` — must be present
-- at least one `P3_HQ_Dashboard_*` location file — must be present
+In `<YYYY_MM_DD_Week>` confirm `P3_HQ_Network_Overview_V2.xlsx` + ≥1
+`P3_HQ_Dashboard_*` exist and are fresh. If missing, **stop**.
 
-If anything is missing or stale, **stop** and report which files.
+## Step 6 — Build the network dashboard
 
-## Step 6 — Run the dashboard update skill
+Run `update-p3-network-health-dashboard` against the new week's
+`P3_HQ_Network_Overview_V2.xlsx`. It writes `index.html` to the repo. Report: week
+ending, trading-location count + any excluded as pre-launch (0 active members),
+confirm `index.html` written.
 
-Run the saved skill **`update-p3-network-health-dashboard`**. Let it finish fully.
-Report:
+## Step 7 — Validation gates (replace the human eye; any fail → stop, no publish/email)
 
-- Week ending date used
-- Number of **trading** locations (and any excluded as pre-launch — 0 active members)
-- Confirm `index.html` was written to the repo folder
-- Any missing/incomplete location data
+1. **Revenue sanity** — network weekly revenue within ±25% of last week's.
+2. **Location count** — trading count within ±2 of last week's.
+3. **No holes** — no null `lastWk`/`pct`/`active` for any trading location.
+4. **Clean render** — no leftover `[PLACEHOLDER]`/`INSERT_` tokens; JS data block parses.
 
-If it fails, **stop** and report.
+## Step 8 — Publish to GitHub · HUMAN TOUCH #1
 
-## Step 7 — Validation gates (these replace the human eye)
+`index.html` is written to the repo working tree (do NOT git from the sandbox). Tell
+the user: in **GitHub Desktop** → commit → **Pull origin** → **Push origin**. Wait for
+confirmation. If unconfirmed, **stop** before email.
 
-Before anything is published or emailed, hard-check the new dashboard data against
-the prior week. If **any** gate fails, **stop**, do not publish or email, and report
-exactly which gate tripped and the figures involved:
+## Step 9 — Verify Netlify
 
-1. **Revenue sanity** — network weekly revenue is within ±25% of last week's. A
-   swing bigger than that is almost always a data problem, not reality.
-2. **Location count** — trading-location count is within ±2 of last week's (a sudden
-   jump/drop signals a parse error or a mis-flagged pre-launch site).
-3. **No holes** — no null/blank `lastWk`, `pct`, or `active` for any trading location.
-4. **Clean render** — `index.html` contains no leftover `[PLACEHOLDER]` or `INSERT_`
-   tokens, and the JS data block parses.
+~45s after push, fetch `https://p3-network-dashboard.netlify.app` (cache-buster query)
+and confirm the header shows the correct week ending. Don't email until live.
 
-These gates are what make a near-hands-off run safe — treat a tripped gate as a hard
-stop, not a warning.
+## Step 10 — Archive the published HTML to Drive
 
-## Step 8 — Publish to GitHub  ·  HUMAN TOUCH #1
+Copy the repo's `index.html` into `<YYYY_MM_DD_Week>` as `index_published.html`
+(the per-location xlsx + overview are already there from Step 3). Done — the synced
+folder uploads automatically.
 
-Commit `index.html` locally with message
-`Dashboard update — week ending <WEEK_ENDING_DATE>`. Then hand off the push — the
-agent shell **cannot** push and must **never** use a stored token:
+## Step 11 — Draft the team email (Gmail draft) · HUMAN TOUCH #2
 
-- Tell Jonathan to **Pull origin, then Push origin** in GitHub Desktop (pull first —
-  the remote may be ahead from web edits, so a plain push can be rejected).
-- Wait for confirmation the push is done before continuing.
-
-If the push can't be confirmed, **stop** before email and tell Jonathan the dashboard
-is built and committed but not yet live.
-
-## Step 9 — Verify Netlify deployment
-
-~45 seconds after the push, fetch `https://p3-network-dashboard.netlify.app` and
-confirm the header shows "Week ending <WEEK_ENDING_DATE>". If it hasn't flipped yet,
-note it may still be building and re-check once before flagging. Do not proceed to
-email until the live site shows the correct week.
-
-## Step 10 — Archive the week's files to Drive
-
-In the week's `YYYY_MM_DD_Week` Drive folder, upload this week's outputs from the
-local working folder (the Network Overview + all location dashboards, and a copy of
-the published `index.html`). Confirm each upload. If Drive is unavailable, note it
-and continue — archiving is not a blocker for the email.
-
-## Step 11 — Pre-create next week's drop folder
-
-In the Drive parent, create next week's folder named
-`YYYY_MM_DD_Week__DROP_RAW_HERE` (week-ending date = this week + 7 days), so Jonathan
-always has a clearly-labelled place to drop the next extract. Step 3 of next week's
-run will normalize the name.
-
-## Step 12 — Draft the team email (Gmail draft)  ·  HUMAN TOUCH #2
-
-Create a **Gmail draft** (do not send — the connector can't, and a human eye on exec
-comms is the design). Pull the highlight numbers on the **same trading basis the
-dashboard uses** so the email matches the live site.
+Get the week folder's share URL (Drive connector `search_files title = '<YYYY_MM_DD_Week>'`
+→ `viewUrl`). Create a **Gmail draft** (do not send) on the trading basis:
 
 - **To:** brad@p3recovery.com, marc@p3recovery.com, mark@p3recovery.com, paul@p3recovery.com
 - **CC:** jonathan@p3recovery.com
 - **Subject:** `P3 Network Health Dashboard — Updated <WEEK_ENDING_DATE>`
-
-Body:
 
 ```
 Hi team,
 
 The P3 Network Health Dashboard has been updated for the week ending <WEEK_ENDING_DATE>.
 
-You can view the live dashboard here: https://p3-network-dashboard.netlify.app
+Live dashboard: https://p3-network-dashboard.netlify.app
+Source files (Google Drive): <WEEK_FOLDER_DRIVE_LINK>
 
 This week's highlights:
 - Network weekly revenue: <NETWORK_REVENUE> (<WOW_PCT> vs prior week)
@@ -185,23 +148,13 @@ Prepare. Prevent. Perform.
 Jonathan
 ```
 
-Then tell Jonathan the draft is in Gmail and he just clicks **Send** (it's pre-addressed).
-Quick pre-draft checks: numbers reconcile with the dashboard; `<TOTAL_LOCATIONS>` is
-the trading count; no medical/therapeutic or guaranteed-outcome wording.
+Numbers must match the live dashboard; `<TOTAL_LOCATIONS>` is the trading count; no
+medical/therapeutic or guaranteed-outcome wording.
 
-## Step 13 — Final summary
+## Step 12 — Final summary
 
-Report:
-
-- Week ending date
-- Analytics skill: complete / failed
-- Dashboard skill: complete / failed
-- Validation gates: all passed / which tripped
-- GitHub: committed — awaiting Jonathan's push / pushed & confirmed
-- Netlify: live / still building / not verified
-- Drive archive: complete / skipped
-- Next week's drop folder: created
-- Email: drafted in Gmail, awaiting Jonathan's send
-- Total run time
-- The two actions still needed from Jonathan: (1) Pull+Push in GitHub Desktop, (2) Send the Gmail draft
-- Any warnings or items needing attention
+Report: week ending; analytics ✓/✗; dashboard ✓/✗; gates pass/which failed; GitHub
+(committed — awaiting push / pushed); Netlify (live / building); Drive (folder
+renamed, outputs archived, next drop folder created); email (drafted, awaiting send);
+the two actions left for Jonathan (Pull+Push in GitHub Desktop; send the Gmail draft);
+any items needing attention.
