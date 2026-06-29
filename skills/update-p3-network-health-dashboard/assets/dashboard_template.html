@@ -16,7 +16,7 @@
 }
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.45}
-.wrap{max-width:1180px;margin:0 auto;padding:22px 22px 60px}
+.wrap{max-width:1320px;margin:0 auto;padding:22px 22px 60px}
 header.hd{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:10px;margin-bottom:18px}
 .title{font-size:22px;font-weight:700;letter-spacing:-.2px;color:var(--p3)}
 .title .dot{color:var(--p3-accent)}
@@ -49,7 +49,8 @@ header.hd{display:flex;justify-content:space-between;align-items:flex-end;flex-w
 .legend{display:flex;gap:12px;font-size:12px;color:var(--ink-soft)}
 .legend span{display:inline-flex;align-items:center;gap:5px}
 .swatch{width:9px;height:9px;border-radius:3px;display:inline-block}
-.scroll{overflow-x:auto}
+.scroll{overflow-x:auto;background:linear-gradient(to left,var(--card) 32%,rgba(255,255,255,0)) right center/30px 100% no-repeat local,linear-gradient(to left,rgba(15,39,66,.14),rgba(15,39,66,0)) right center/16px 100% no-repeat scroll}
+.scrollhint{display:none;font-size:11px;color:var(--p3-accent);font-weight:600;white-space:nowrap}
 table{border-collapse:collapse;width:100%;min-width:880px;font-variant-numeric:tabular-nums}
 th,td{padding:9px 12px;text-align:right;border-top:1px solid var(--line);white-space:nowrap}
 th:first-child,td:first-child{text-align:left;position:sticky;left:0;background:var(--card)}
@@ -95,7 +96,7 @@ tr.detail.hide{display:none}
 .tabs button.active{color:var(--p3);border-bottom-color:var(--p3-accent)}
 .tabpane{display:none}
 .tabpane.active{display:block}
-.mtx-scroll{overflow-x:auto}
+.mtx-scroll{overflow-x:auto;background:linear-gradient(to left,var(--card) 32%,rgba(255,255,255,0)) right center/30px 100% no-repeat local,linear-gradient(to left,rgba(15,39,66,.14),rgba(15,39,66,0)) right center/16px 100% no-repeat scroll}
 table.mtx{border-collapse:separate;border-spacing:0;width:100%;min-width:820px;font-variant-numeric:tabular-nums}
 table.mtx th,table.mtx td{padding:9px 12px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--line)}
 table.mtx th{font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--ink-soft);font-weight:600;background:#fafbfd;position:sticky;top:0;z-index:1}
@@ -154,7 +155,7 @@ table.mtx tr.total td:first-child{background:#f3f6fb}
   </div>
   <div class="tablecard">
     <div class="hd2">
-      <h3>Locations · path to tier goal <span style="text-transform:none;letter-spacing:0;font-weight:500;color:var(--p3-accent)">— click a row for monthly trend</span></h3>
+      <h3>Locations · path to tier goal <span style="text-transform:none;letter-spacing:0;font-weight:500;color:var(--p3-accent)">— click a row for monthly trend</span> <span id="hint-ov" class="scrollhint">· ↔ scroll for more columns →</span></h3>
       <div class="legend">
         <span><i class="swatch" style="background:var(--green)"></i>On Track</span>
         <span><i class="swatch" style="background:var(--amber)"></i>Close</span>
@@ -186,7 +187,7 @@ table.mtx tr.total td:first-child{background:#f3f6fb}
   <p class="foot">Hapana transaction-day basis · monthly figures are exact daily sums (no week-straddle approximation). Sortable: click any column header.</p>
   </div>
   <div id="tab-monthly" class="tabpane">
-    <p class="mtx-note">Total revenue (incl-GST) by calendar month — every location at a glance. Cells are shaded by value within each location's row. <strong>[LIVE_MONTH]</strong> is the live month (through day [MTD_DAYS] of [MONTH_DAYS]); its projection is MTD × [MONTH_DAYS]/[MTD_DAYS].</p>
+    <p class="mtx-note">Total revenue (incl-GST) by calendar month — every location at a glance. Cells are shaded by value within each location's row. <strong>[LIVE_MONTH]</strong> is the live month (through day [MTD_DAYS] of [MONTH_DAYS]); its projection is MTD × [MONTH_DAYS]/[MTD_DAYS]. <span id="hint-mtx" class="scrollhint">↔ scroll for more columns →</span></p>
     <div class="tablecard">
       <div class="mtx-scroll">
         <table class="mtx" id="mtx"><thead></thead><tbody></tbody></table>
@@ -218,14 +219,15 @@ document.querySelectorAll("#tbl th").forEach(th=>{th.addEventListener("click",()
 const MCOLS=Object.values(MONTHLY).find(m=>m.months&&m.months[0])?.months||[];
 const heat=(v,max)=>v==null||max<=0?"":`background:rgba(22,184,166,${(0.05+0.45*(v/max)).toFixed(3)})`;
 function valFor(m,label){const i=m.months.indexOf(label);return i>=0?m.vals[i]:null;}
-function trendOf(m){if(m.opened)return null;const fa=m.vals.find(v=>v!=null);if(fa==null||!fa||m.proj==null)return null;const t=(m.proj-fa)/fa;return (!isFinite(t)||Math.abs(t)>2)?null:t;}
+function trendOf(m){if(m.opened)return null;const base=(m.vals[1]!=null?m.vals[1]:m.vals[0]);if(base==null||!base||m.proj==null)return null;const t=(m.proj-base)/base;return (!isFinite(t)||Math.abs(t)>2)?null:t;}
 function mspark(m){const s=[m.vals[0],m.vals[1],m.proj].filter(v=>v!=null);if(s.length<2)return"";const w=52,h=16,mn=Math.min(...s),mx=Math.max(...s),r=(mx-mn)||1;const t=trendOf(m),col=t==null?"#888780":(t>=0?"#1d9e75":"#e24b4a");const pts=s.map((v,i)=>`${(i/(s.length-1))*(w-4)+2},${(h-2)-((v-mn)/r)*(h-4)}`);return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" style="vertical-align:middle"><polyline fill="none" stroke="${col}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" points="${pts.join(' ')}"/></svg>`;}
 function trendCell(m){const t=trendOf(m);if(t==null)return `<td class="grp">${mspark(m)} <span class="cellsub">${m.opened?'new':'—'}</span></td>`;return `<td class="grp">${mspark(m)} <span class="cellsub ${t>=0?'up-s':'down-s'}">${t>=0?'▲':'▼'}${(Math.abs(t)*100).toFixed(0)}%</span></td>`;}
 let mtxSort={k:"proj",asc:false};
 function mtxVal(loc,k){const m=MONTHLY[loc];if(k==="loc")return loc;if(k==="mtd")return m.mtd??-1;if(k==="proj")return m.proj??-1;if(k==="goal")return m.target??-1;if(k==="trend"){const t=trendOf(m);return t==null?-Infinity:t;}return valFor(m,k)??-1;}
-function buildMatrix(){const keys=["loc",...MCOLS,"mtd","proj","goal","trend"];const labels={loc:"Location",mtd:"Live MTD",proj:"Proj.",goal:"Tier Goal",trend:"Trend"};MCOLS.forEach(c=>labels[c]=c);const grp={mtd:1,goal:1,trend:1};const head=`<tr>${keys.map(k=>`<th data-mk="${k}" class="${grp[k]?'grp':''}${mtxSort.k===k?' arrow'+(mtxSort.asc?' asc':''):''}" style="cursor:pointer">${labels[k]}</th>`).join("")}</tr>`;document.querySelector("#mtx thead").innerHTML=head;const order=Object.keys(MONTHLY).sort((a,b)=>{let av=mtxVal(a,mtxSort.k),bv=mtxVal(b,mtxSort.k);if(typeof av==="string")return mtxSort.asc?av.localeCompare(bv):bv.localeCompare(av);return mtxSort.asc?av-bv:bv-av;});const totals={mtd:0,proj:0,goal:0};MCOLS.forEach(c=>totals[c]=0);const body=order.map(loc=>{const m=MONTHLY[loc];const rowMax=Math.max(...[...MCOLS.map(c=>valFor(m,c)),m.mtd,m.proj].filter(v=>v!=null),1);let cells="",prev=null;MCOLS.forEach(c=>{const v=valFor(m,c);if(v==null){cells+=`<td class="dash">–</td>`;}else{totals[c]+=v;let sub="";if(prev!=null&&prev>0){const ch=(v-prev)/prev;sub=`<div class="cellsub ${ch>=0?'up-s':'down-s'}">${ch>=0?'▲':'▼'}${(Math.abs(ch)*100).toFixed(0)}%</div>`;}cells+=`<td class="heat" style="${heat(v,rowMax)}">${money(v)}${sub}</td>`;}if(v!=null)prev=v;});if(m.mtd==null){cells+=`<td class="dash grp">–</td>`;}else{totals.mtd+=m.mtd;cells+=`<td class="heat grp" style="${heat(m.mtd,rowMax)}">${money(m.mtd)}<div class="cellsub">MTD d${MTD_DAYS}/${MONTH_DAYS}</div></td>`;}if(m.proj==null){cells+=`<td class="dash">–</td>`;}else{totals.proj+=m.proj;const pace=m.proj/m.target;cells+=`<td class="heat" style="${heat(m.proj,rowMax)}">${money(m.proj)}<div class="cellsub ${pace>=0.95?'up-s':pace<0.8?'down-s':''}">${(pace*100).toFixed(0)}% of tgt</div></td>`;}totals.goal+=m.target;const chip=m.opened?`<span class="newchip">New · ${m.opened}</span>`:(m.preramp&&loc==="Hamilton"?`<span class="newchip" style="background:#c4cad6">Dormant</span>`:"");return`<tr><td>${loc}${chip}</td>${cells}<td>${money(m.target)}</td>${trendCell(m)}</tr>`;}).join("");const totalRow=`<tr class="total"><td>Network total</td>${MCOLS.map(c=>`<td>${money(totals[c])}</td>`).join("")}<td class="grp">${money(totals.mtd)}</td><td>${money(totals.proj)}</td><td class="grp">${money(totals.goal)}</td><td class="grp"></td></tr>`;document.querySelector("#mtx tbody").innerHTML=body+totalRow;document.querySelectorAll("#mtx th").forEach(th=>th.addEventListener("click",()=>{const k=th.dataset.mk;if(k===mtxSort.k)mtxSort.asc=!mtxSort.asc;else{mtxSort={k:k,asc:(k==="loc")};}buildMatrix();}));}
-document.querySelectorAll(".tabs button").forEach(b=>{b.addEventListener("click",()=>{document.querySelectorAll(".tabs button").forEach(x=>x.classList.remove("active"));document.querySelectorAll(".tabpane").forEach(x=>x.classList.remove("active"));b.classList.add("active");document.getElementById("tab-"+b.dataset.tab).classList.add("active");});});
-kpis();render();buildMatrix();
+function buildMatrix(){const keys=["loc",...MCOLS,"mtd","proj","goal","trend"];const labels={loc:"Location",mtd:"Live MTD",proj:"Proj.",goal:"Plan target",trend:"Trend"};MCOLS.forEach(c=>labels[c]=c);const grp={mtd:1,goal:1,trend:1};const head=`<tr>${keys.map(k=>`<th data-mk="${k}" class="${grp[k]?'grp':''}${mtxSort.k===k?' arrow'+(mtxSort.asc?' asc':''):''}" style="cursor:pointer">${labels[k]}</th>`).join("")}</tr>`;document.querySelector("#mtx thead").innerHTML=head;const order=Object.keys(MONTHLY).sort((a,b)=>{let av=mtxVal(a,mtxSort.k),bv=mtxVal(b,mtxSort.k);if(typeof av==="string")return mtxSort.asc?av.localeCompare(bv):bv.localeCompare(av);return mtxSort.asc?av-bv:bv-av;});const totals={mtd:0,proj:0,goal:0};MCOLS.forEach(c=>totals[c]=0);const body=order.map(loc=>{const m=MONTHLY[loc];const rowMax=Math.max(...[...MCOLS.map(c=>valFor(m,c)),m.mtd,m.proj].filter(v=>v!=null),1);let cells="",prev=null;MCOLS.forEach(c=>{const v=valFor(m,c);if(v==null){cells+=`<td class="dash">–</td>`;}else{totals[c]+=v;let sub="";if(prev!=null&&prev>0){const ch=(v-prev)/prev;sub=`<div class="cellsub ${ch>=0?'up-s':'down-s'}">${ch>=0?'▲':'▼'}${(Math.abs(ch)*100).toFixed(0)}%</div>`;}cells+=`<td class="heat" style="${heat(v,rowMax)}">${money(v)}${sub}</td>`;}if(v!=null)prev=v;});if(m.mtd==null){cells+=`<td class="dash grp">–</td>`;}else{totals.mtd+=m.mtd;cells+=`<td class="heat grp" style="${heat(m.mtd,rowMax)}">${money(m.mtd)}<div class="cellsub">MTD d${MTD_DAYS}/${MONTH_DAYS}</div></td>`;}if(m.proj==null){cells+=`<td class="dash">–</td>`;}else{totals.proj+=m.proj;const pace=m.proj/m.target;cells+=`<td class="heat" style="${heat(m.proj,rowMax)}">${money(m.proj)}<div class="cellsub ${pace>=0.95?'up-s':pace<0.8?'down-s':''}">${(pace*100).toFixed(0)}% of tgt</div></td>`;}totals.goal+=m.target;const chip=m.opened?`<span class="newchip">New · ${m.opened}</span>`:(m.preramp&&loc==="Hamilton"?`<span class="newchip" style="background:#c4cad6">Dormant</span>`:"");return`<tr><td>${loc}${chip}</td>${cells}<td>${money(m.target)}</td>${trendCell(m)}</tr>`;}).join("");const totalRow=`<tr class="total"><td>Network total</td>${MCOLS.map(c=>`<td>${money(totals[c])}</td>`).join("")}<td class="grp">${money(totals.mtd)}</td><td>${money(totals.proj)}</td><td class="grp">${money(totals.goal)}</td><td class="grp"></td></tr>`;document.querySelector("#mtx tbody").innerHTML=body+totalRow;document.querySelectorAll("#mtx th").forEach(th=>th.addEventListener("click",()=>{const k=th.dataset.mk;if(k===mtxSort.k)mtxSort.asc=!mtxSort.asc;else{mtxSort={k:k,asc:(k==="loc")};}buildMatrix();}));}
+document.querySelectorAll(".tabs button").forEach(b=>{b.addEventListener("click",()=>{document.querySelectorAll(".tabs button").forEach(x=>x.classList.remove("active"));document.querySelectorAll(".tabpane").forEach(x=>x.classList.remove("active"));b.classList.add("active");document.getElementById("tab-"+b.dataset.tab).classList.add("active");updateScrollHints();});});
+function updateScrollHints(){[[".scroll","#hint-ov"],[".mtx-scroll","#hint-mtx"]].forEach(([sc,h])=>{const el=document.querySelector(sc),hint=document.querySelector(h);if(!el||!hint)return;const vis=el.offsetParent!==null;hint.style.display=(vis&&el.scrollWidth>el.clientWidth+2)?"inline":"none";});}
+kpis();render();buildMatrix();updateScrollHints();window.addEventListener("resize",updateScrollHints);
 </script>
 </body>
 </html>

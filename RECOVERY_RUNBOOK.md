@@ -19,10 +19,14 @@ and notifies the leadership team.
 Flow: **drop raw extract in Drive → analytics build → dashboard build → validate →
 publish to GitHub → Netlify deploys → archive to Drive → email the team.**
 
-The Monthly Matrix tab includes a **sortable Trend column** (3-month direction,
-Apr→May→Jun-projection, sparkline + ▲▼%); click any matrix header to sort — clicking
-Trend ranks locations by momentum. Recently-opened locations (pre-opening history)
-are flagged "new" and excluded from the trend ranking.
+The Monthly Matrix tab includes a **sortable Trend column**: the sparkline shows the
+3-month shape (Apr→May→Jun-projection) and the % is the latest month-on-month turn
+(May→Jun-projection). Click any matrix header to sort — clicking Trend ranks by
+momentum. Recently-opened locations (first actual month < $15K, i.e. pre-opening
+history) are flagged "new" and excluded from the ranking. The matrix's monthly target
+column is labelled **"Plan target"** (the month's plan milestone) — distinct from the
+round tier bracket shown as "Tier goal" on the Network Overview tab. Layout is widened
+and wide tables show a right-edge fade + "↔ scroll" hint when they overflow.
 
 ## 2. Where everything lives
 
