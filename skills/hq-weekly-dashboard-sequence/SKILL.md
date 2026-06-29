@@ -57,30 +57,31 @@ Read the extract enough to derive the **actual week-ending Sunday** from the dat
 clean `YYYY_MM_DD_Week` folder and the date in the live repo `index.html`. If it
 matches a week already published, **stop** (override only if the user says re-run).
 
-## Step 3 — Run the analytics build (outputs straight to Drive)
+## Step 3 — Rename the drop folder (rename, never delete)
 
-Run `build_dashboards.py` with output going into the Drive pipeline folder:
+**Rename** (`mv`) the `…__DROP_RAW_HERE` folder to the clean `<YYYY_MM_DD_Week>`
+(date from Step 2). The Drive mount allows **rename but not folder delete**, so we
+rename-first rather than create-a-new-folder-then-delete (which leaves an
+undeletable empty orphan). The raw extracts now sit in the clean week folder.
+
+## Step 4 — Run the analytics build (into the same folder) + next drop folder
+
+Run `build_dashboards.py` pointing `--output-dir` at the HQ pipeline folder; the
+script writes the dashboards + `P3_HQ_Network_Overview_V2.xlsx` **into the existing**
+`<YYYY_MM_DD_Week>` folder (same name, derived from the data), alongside the raw
+extracts:
 
 ```
 python <…>/build_dashboards.py \
-  --input "<drop folder>/Weekly Performance, All Locations*.xlsx" \
-  --supplement "<drop folder>/Weekly Performance, NZ*.xlsx" \
+  --input "<YYYY_MM_DD_Week>/Weekly Performance, All Locations*.xlsx" \
+  --supplement "<YYYY_MM_DD_Week>/Weekly Performance, NZ*.xlsx" \
   --output-dir "<Drive pipeline folder>" \
   --no-libreoffice
 ```
 
-The script creates a clean `<YYYY_MM_DD_Week>` folder (named for the last complete
-week) with one xlsx per location + `P3_HQ_Network_Overview_V2.xlsx`. Report: week
-ending, location count (expect all incl. Mount Maunganui), any errors.
-
-## Step 4 — Normalize folders
-
-- Move the two raw extracts from the `…__DROP_RAW_HERE` folder into the new clean
-  `<YYYY_MM_DD_Week>` folder (so raw + outputs sit together).
-- Delete the now-empty `…__DROP_RAW_HERE` folder.
-- Create **next week's** drop folder: `<this week + 7 days>_Week__DROP_RAW_HERE`.
-
-(All via file tools/bash on the synced folder — it syncs to Drive automatically.)
+Then create **next week's** drop folder: `<this week + 7 days>_Week__DROP_RAW_HERE`
+(mkdir — that's allowed). Report: week ending, location count (expect all incl. Mount
+Maunganui), any new/excluded locations, any errors.
 
 ## Step 5 — Verify outputs
 

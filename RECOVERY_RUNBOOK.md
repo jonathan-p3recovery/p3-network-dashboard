@@ -3,7 +3,7 @@
 Single source of truth for the P3 Recovery weekly network dashboard. This file plus
 the `skills/` folder rebuilds the whole pipeline on a new machine.
 
-Last updated: 22 Jun 2026.
+Last updated: 29 Jun 2026.
 
 **Documentation rule:** whenever any P3-owned skill changes, its documentation is
 updated immediately (no asking). See §8 for the skill→doc registry.
@@ -88,4 +88,6 @@ folder, and a local copy in `P3 Launch HQ`.
 2. Run the **HQ-Weekly-Dashboard-Sequence** skill.
 3. It builds + validates, writes `index.html`, archives to Drive, renames the week
    folder, creates next week's drop folder, and drafts the team email (with the Drive link).
+   Note: the skill **renames** the drop folder (the Drive mount allows rename but not
+   folder delete) and auto-handles new/pre-launch locations (0 active members → excluded).
 4. Two clicks: GitHub Desktop (commit → Pull → Push), then send the Gmail draft once the site is live.
