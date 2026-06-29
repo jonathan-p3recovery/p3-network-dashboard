@@ -19,6 +19,11 @@ and notifies the leadership team.
 Flow: **drop raw extract in Drive → analytics build → dashboard build → validate →
 publish to GitHub → Netlify deploys → archive to Drive → email the team.**
 
+The Monthly Matrix tab includes a **sortable Trend column** (3-month direction,
+Apr→May→Jun-projection, sparkline + ▲▼%); click any matrix header to sort — clicking
+Trend ranks locations by momentum. Recently-opened locations (pre-opening history)
+are flagged "new" and excluded from the trend ranking.
+
 ## 2. Where everything lives
 
 - **Process / skills** — this repo, `skills/` folder (versioned, recoverable).

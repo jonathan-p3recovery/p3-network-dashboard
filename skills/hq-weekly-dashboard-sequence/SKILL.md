@@ -144,18 +144,32 @@ This week's highlights:
 - Top performer: <TOP_PERFORMER>
 
 The full location breakdown, monthly matrix and trend data are all available in the dashboard.
-
-Prepare. Prevent. Perform.
-Jonathan
 ```
+
+(No sign-off line — end after the dashboard sentence.)
 
 Numbers must match the live dashboard; `<TOTAL_LOCATIONS>` is the trading count; no
 medical/therapeutic or guaranteed-outcome wording.
 
-## Step 12 — Final summary
+**Always pass `htmlBody` too** (same content, with the live URL and Drive link as
+proper `<a href>` anchors), in addition to the plain `body`. If you send bare URLs in
+plain text only, Gmail rewrites them into ugly `https://www.google.com/url?q=…`
+redirect links. The HTML anchor keeps the visible URL clean.
 
-Report: week ending; analytics ✓/✗; dashboard ✓/✗; gates pass/which failed; GitHub
-(committed — awaiting push / pushed); Netlify (live / building); Drive (folder
-renamed, outputs archived, next drop folder created); email (drafted, awaiting send);
-the two actions left for Jonathan (Pull+Push in GitHub Desktop; send the Gmail draft);
-any items needing attention.
+## Step 12 — Final summary + "YOUR TURN" reminder
+
+Report briefly: week ending; analytics ✓/✗; dashboard ✓/✗ (trading count, any
+new/excluded locations); gates pass/which failed; Drive (folder renamed, outputs
+archived, next drop folder created); email (drafted). Flag anything needing attention.
+
+Then **always end with this exact reminder block** (fill in the week/numbers), so the
+user knows what's left regardless of who ran it:
+
+```
+👉 YOUR TURN — 2 steps:
+1. Publish: GitHub Desktop → tick files → Commit to main → Pull origin → Push origin
+2. Email: wait ~1 min, confirm the live site shows W/E <WEEK_ENDING_DATE>, then send the Gmail draft
+```
+
+If a validation gate failed or the run stopped early, replace the block with exactly
+what's blocked and what the user needs to decide instead.
