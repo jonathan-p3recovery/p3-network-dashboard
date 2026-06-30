@@ -22,7 +22,8 @@ publish to GitHub → Netlify deploys → archive to Drive → email the team.**
 The Monthly Matrix tab includes a **sortable Trend column**: the sparkline shows a
 4-month shape (Mar→Apr→May→Jun-projection) and the % is **June's projection vs the
 Mar–May average** (a smoothed 3-month baseline — steadier than month-on-month). Click
-any matrix header to sort — clicking Trend ranks by momentum. The 3 prior full months
+any matrix header to sort — clicking Trend ranks by momentum. The Trend header carries
+an ⓘ tooltip explaining the calculation. The 3 prior full months
 (Mar/Apr/May here) are computed from the **raw extract** during the dashboard build
 (they're not in the per-location Monthly_View, which only carries the 3 displayed
 months), and stored as `prior:[...]` in each MONTHLY entry. Recently-opened locations
