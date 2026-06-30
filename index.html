@@ -194,7 +194,7 @@ table.mtx tr.total td:first-child{background:#f3f6fb}
       </div>
     </div>
     <div class="mtx-legend"><span>Lower</span><span class="gradient"></span><span>Higher (within each location)</span></div>
-    <p class="foot">Network figures cover the 14 trading locations. Excluded until they record active members: Hamilton (dormant since Dec 2025), Warners Bay (pre-trade), Fremantle (newly opening — 282 members loaded, 0 active at week-end). Shellharbour opened Jun 2026; pre-opening months are soft trade. Trend: the sparkline shows the 3-month shape (Apr→May→Jun proj); the % is the latest month-on-month turn (May→Jun proj). Click the Trend header to rank by momentum.</p>
+    <p class="foot">Network figures cover the 14 trading locations. Excluded until they record active members: Hamilton (dormant since Dec 2025), Warners Bay (pre-trade), Fremantle (newly opening — 282 members loaded, 0 active at week-end). Shellharbour opened Jun 2026; flagged new. Trend: the sparkline shows Mar→Apr→May→Jun (Jun = projection); the % is June's projection vs the Mar–May average (a smoothed 3-month baseline). Click the Trend header to rank by momentum.</p>
   </div>
 </div>
 <script>
@@ -218,20 +218,20 @@ const DATA=[
  {name:"Winnellie",status:"Close",lastWk:12146.27,pct:0.895,wow:-0.0963,monthly:58223,goal:70000,planWks:20,crossover:"Nov 2026",active:262,netAdds:9}
 ];
 const MONTHLY={
- "Bayside":{months:["Apr 2026","May 2026","Jun 2026"],vals:[88899,95025,100250],mtd:100250,proj:107411,target:110680},
- "Pimpama":{months:["Apr 2026","May 2026","Jun 2026"],vals:[77109,80670,78103],mtd:78103,proj:83682,target:86356},
- "Geelong":{months:["Apr 2026","May 2026","Jun 2026"],vals:[36304,39590,39045],mtd:39045,proj:41834,target:43955},
- "Shellharbour":{months:["Apr 2026","May 2026","Jun 2026"],vals:[2675,6845,64684],mtd:64684,proj:69304,target:72162,opened:"Jun 2026"},
- "Burleigh Heads":{months:["Apr 2026","May 2026","Jun 2026"],vals:[100914,108523,95846],mtd:95846,proj:102692,target:105677},
- "Stafford":{months:["Apr 2026","May 2026","Jun 2026"],vals:[74186,69822,62860],mtd:62860,proj:67350,target:70022},
- "Labrador":{months:["Apr 2026","May 2026","Jun 2026"],vals:[48735,49807,47286],mtd:47286,proj:50664,target:53063},
- "Port Melbourne":{months:["Apr 2026","May 2026","Jun 2026"],vals:[43554,49994,45364],mtd:45364,proj:48604,target:51123},
- "Springwood":{months:["Apr 2026","May 2026","Jun 2026"],vals:[60180,57245,47717],mtd:47717,proj:51125,target:53612},
- "Moore Park":{months:["Apr 2026","May 2026","Jun 2026"],vals:[51982,58986,58687],mtd:58687,proj:62879,target:65703},
- "Ashmore":{months:["Apr 2026","May 2026","Jun 2026"],vals:[42062,47257,41175],mtd:41175,proj:44116,target:46336},
- "Richmond":{months:["Apr 2026","May 2026","Jun 2026"],vals:[58318,62288,59983],mtd:59983,proj:64268,target:66836},
- "Mount Maunganui":{months:["Apr 2026","May 2026","Jun 2026"],vals:[37205,36285,31424],mtd:31424,proj:33668,target:35756},
- "Winnellie":{months:["Apr 2026","May 2026","Jun 2026"],vals:[59140,56525,53744],mtd:53744,proj:57583,target:60080}
+ "Bayside":{months:["Apr 2026","May 2026","Jun 2026"],vals:[88899,95025,100250],prior:[96201,88899,95025],mtd:100250,proj:107411,target:110680},
+ "Pimpama":{months:["Apr 2026","May 2026","Jun 2026"],vals:[77109,80670,78103],prior:[82860,77109,80670],mtd:78103,proj:83682,target:86356},
+ "Geelong":{months:["Apr 2026","May 2026","Jun 2026"],vals:[36304,39590,39045],prior:[35300,36304,39590],mtd:39045,proj:41834,target:43955},
+ "Shellharbour":{months:["Apr 2026","May 2026","Jun 2026"],vals:[2675,6845,64684],prior:[4107,2675,6845],mtd:64684,proj:69304,target:72162,opened:"Jun 2026"},
+ "Burleigh Heads":{months:["Apr 2026","May 2026","Jun 2026"],vals:[100914,108523,95846],prior:[112637,100914,108523],mtd:95846,proj:102692,target:105677},
+ "Stafford":{months:["Apr 2026","May 2026","Jun 2026"],vals:[74186,69822,62860],prior:[78898,74186,69822],mtd:62860,proj:67350,target:70022},
+ "Labrador":{months:["Apr 2026","May 2026","Jun 2026"],vals:[48735,49807,47286],prior:[46716,48735,49807],mtd:47286,proj:50664,target:53063},
+ "Port Melbourne":{months:["Apr 2026","May 2026","Jun 2026"],vals:[43554,49994,45364],prior:[44443,43554,49994],mtd:45364,proj:48604,target:51123},
+ "Springwood":{months:["Apr 2026","May 2026","Jun 2026"],vals:[60180,57245,47717],prior:[60264,60180,57245],mtd:47717,proj:51125,target:53612},
+ "Moore Park":{months:["Apr 2026","May 2026","Jun 2026"],vals:[51982,58986,58687],prior:[58808,51982,58986],mtd:58687,proj:62879,target:65703},
+ "Ashmore":{months:["Apr 2026","May 2026","Jun 2026"],vals:[42062,47257,41175],prior:[42351,42062,47257],mtd:41175,proj:44116,target:46336},
+ "Richmond":{months:["Apr 2026","May 2026","Jun 2026"],vals:[58318,62288,59983],prior:[64968,58318,62288],mtd:59983,proj:64268,target:66836},
+ "Mount Maunganui":{months:["Apr 2026","May 2026","Jun 2026"],vals:[37205,36285,31424],prior:[39344,37205,36285],mtd:31424,proj:33668,target:35756},
+ "Winnellie":{months:["Apr 2026","May 2026","Jun 2026"],vals:[59140,56525,53744],prior:[60345,59140,56525],mtd:53744,proj:57583,target:60080}
 };
 const MTD_DAYS=28;
 const MONTH_DAYS=30;
@@ -249,8 +249,8 @@ document.querySelectorAll("#tbl th").forEach(th=>{th.addEventListener("click",()
 const MCOLS=Object.values(MONTHLY).find(m=>m.months&&m.months[0])?.months||[];
 const heat=(v,max)=>v==null||max<=0?"":`background:rgba(22,184,166,${(0.05+0.45*(v/max)).toFixed(3)})`;
 function valFor(m,label){const i=m.months.indexOf(label);return i>=0?m.vals[i]:null;}
-function trendOf(m){if(m.opened)return null;const base=(m.vals[1]!=null?m.vals[1]:m.vals[0]);if(base==null||!base||m.proj==null)return null;const t=(m.proj-base)/base;return (!isFinite(t)||Math.abs(t)>2)?null:t;}
-function mspark(m){const s=[m.vals[0],m.vals[1],m.proj].filter(v=>v!=null);if(s.length<2)return"";const w=52,h=16,mn=Math.min(...s),mx=Math.max(...s),r=(mx-mn)||1;const t=trendOf(m),col=t==null?"#888780":(t>=0?"#1d9e75":"#e24b4a");const pts=s.map((v,i)=>`${(i/(s.length-1))*(w-4)+2},${(h-2)-((v-mn)/r)*(h-4)}`);return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" style="vertical-align:middle"><polyline fill="none" stroke="${col}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" points="${pts.join(' ')}"/></svg>`;}
+function trendOf(m){if(m.opened)return null;const pr=(m.prior||[]).filter(v=>v!=null);if(!pr.length||m.proj==null)return null;const base=pr.reduce((a,b)=>a+b,0)/pr.length;if(!base)return null;const t=(m.proj-base)/base;return (!isFinite(t)||Math.abs(t)>2)?null:t;}
+function mspark(m){const pr=(m.prior&&m.prior.length)?m.prior:[m.vals[0],m.vals[1]];const s=[...pr,m.proj].filter(v=>v!=null);if(s.length<2)return"";const w=58,h=16,mn=Math.min(...s),mx=Math.max(...s),r=(mx-mn)||1;const t=trendOf(m),col=t==null?"#888780":(t>=0?"#1d9e75":"#e24b4a");const pts=s.map((v,i)=>`${(i/(s.length-1))*(w-4)+2},${(h-2)-((v-mn)/r)*(h-4)}`);return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" style="vertical-align:middle"><polyline fill="none" stroke="${col}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" points="${pts.join(' ')}"/></svg>`;}
 function trendCell(m){const t=trendOf(m);if(t==null)return `<td class="grp">${mspark(m)} <span class="cellsub">${m.opened?'new':'—'}</span></td>`;return `<td class="grp">${mspark(m)} <span class="cellsub ${t>=0?'up-s':'down-s'}">${t>=0?'▲':'▼'}${(Math.abs(t)*100).toFixed(0)}%</span></td>`;}
 let mtxSort={k:"proj",asc:false};
 function mtxVal(loc,k){const m=MONTHLY[loc];if(k==="loc")return loc;if(k==="mtd")return m.mtd??-1;if(k==="proj")return m.proj??-1;if(k==="goal")return m.target??-1;if(k==="trend"){const t=trendOf(m);return t==null?-Infinity:t;}return valFor(m,k)??-1;}

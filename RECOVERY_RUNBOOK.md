@@ -19,14 +19,18 @@ and notifies the leadership team.
 Flow: **drop raw extract in Drive → analytics build → dashboard build → validate →
 publish to GitHub → Netlify deploys → archive to Drive → email the team.**
 
-The Monthly Matrix tab includes a **sortable Trend column**: the sparkline shows the
-3-month shape (Apr→May→Jun-projection) and the % is the latest month-on-month turn
-(May→Jun-projection). Click any matrix header to sort — clicking Trend ranks by
-momentum. Recently-opened locations (first actual month < $15K, i.e. pre-opening
-history) are flagged "new" and excluded from the ranking. The matrix's monthly target
-column is labelled **"Plan target"** (the month's plan milestone) — distinct from the
-round tier bracket shown as "Tier goal" on the Network Overview tab. Layout is widened
-and wide tables show a right-edge fade + "↔ scroll" hint when they overflow.
+The Monthly Matrix tab includes a **sortable Trend column**: the sparkline shows a
+4-month shape (Mar→Apr→May→Jun-projection) and the % is **June's projection vs the
+Mar–May average** (a smoothed 3-month baseline — steadier than month-on-month). Click
+any matrix header to sort — clicking Trend ranks by momentum. The 3 prior full months
+(Mar/Apr/May here) are computed from the **raw extract** during the dashboard build
+(they're not in the per-location Monthly_View, which only carries the 3 displayed
+months), and stored as `prior:[...]` in each MONTHLY entry. Recently-opened locations
+(earliest prior month < $15K) are flagged "new" and excluded from the ranking; a
+safety cap also drops any |trend| > 200%. The matrix's monthly target column is
+labelled **"Plan target"** (the month's plan milestone) — distinct from the round tier
+bracket shown as "Tier goal" on the Network Overview tab. Layout is widened and wide
+tables show a right-edge fade + "↔ scroll" hint when they overflow.
 
 ## 2. Where everything lives
 

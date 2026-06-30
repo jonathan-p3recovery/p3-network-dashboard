@@ -95,12 +95,22 @@ MONTHLY = { /* keyed by location name */
     vals:   [num, num, num],          // matching monthly actuals
     mtd:    num,                       // current-month revenue to date
     proj:   num,                       // MTD projection for full month
-    target: num,                       // monthly tier-goal target
+    target: num,                       // monthly PLAN target (shown as "Plan target")
+    prior:  [num, num, num],           // the 3 FULL months before the live month (e.g. Mar,Apr,May) — for the Trend column
     opened: "Mon YYYY",                // only for new locations
     preramp: true                      // only for dormant/pre-ramp locations
   }
 }
 ```
+
+**`prior` (3 prior full months):** the per-location `Monthly_View` only carries the 3
+displayed months (the live month + 2 prior), so the earliest baseline month isn't
+there. Compute `prior` = the 3 full calendar months immediately before the live month
+by summing daily revenue per location from the **raw extract** (the "Weekly
+Performance, All Locations" file + the NZ supplement). The Monthly Matrix **Trend
+column** uses it: sparkline = `[...prior, proj]`; the % = `(proj − avg(prior)) /
+avg(prior)`. Locations whose earliest prior month is < $15K are flagged `opened`
+("new") and excluded from the trend; a safety cap drops any |trend| > 200%.
 
 ### Exclude pre-launch / not-yet-trading locations
 
